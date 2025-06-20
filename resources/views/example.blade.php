@@ -8,7 +8,7 @@
             <p>Tên: {{ $name }}</p>
         </div>
         <div>
-                {-- If-Else --}}
+        {{-- {-- If-Else --}}
         @if($name == 'An')
             <p>Xin chào, {{ $name }}!</p>
         @else
@@ -16,6 +16,7 @@
         @endif
 
         {{-- Foreach --}}
+        
         <ul>
             @foreach($users as $user)
                 <li>{{ $user->name }}</li>

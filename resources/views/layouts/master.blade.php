@@ -5,8 +5,6 @@
     @stack('styles')
   </head>
   <body>
-    @include('layouts.header')
-    @include('layouts.navbar')
     <div class="container">
         @yield('content')
     </div>

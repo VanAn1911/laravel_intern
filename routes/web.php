@@ -70,9 +70,14 @@ Route::get('/profile', [UserController::class, 'show'])->name('user.profile');
 // });
 
 //Truyền dữ liệu vào view
-Route::get('/home-data', function () {
+Route::get('/demo', function () {
     $name = "An";
-    return view('example', compact('name'));
+    $users = [
+            (object)['name' => 'An'],
+            (object)['name' => 'Bình'],
+            (object)['name' => 'Chi'],
+        ];
+    return view('example', compact('name', 'users'));
 });
 
 

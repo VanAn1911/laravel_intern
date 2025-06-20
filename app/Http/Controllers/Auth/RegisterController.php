@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Http\Requests\RegisterRequest;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Foundation\Auth\RegistersUsers;
@@ -62,6 +63,13 @@ class RegisterController extends Controller
         ]);
     }
 
+    public function register(RegisterRequest $request)
+{
+    $user = $this->create($request->validated());
+    Mail::to($user->email)->send(new WelcomeMail($user));
+    return redirect('/login')->with('success', 'Đăng ký tài khoản thành công!');
+}
+
     /**
      * Create a new user instance after a valid registration.
      *
@@ -78,16 +86,5 @@ class RegisterController extends Controller
             'status' => 0, // Chờ phê duyệt
             'role' => 'user',
         ]);
-    }
-
-    // Ghi đè hàm register để gửi mail và flash message
-    public function register(Request $request)
-    {
-        $this->validator($request->all())->validate();
-        $user = $this->create($request->all());
-        // Gửi email chào mừng
-        Mail::to($user->email)->send(new WelcomeMail($user));
-        // Flash message
-        return redirect('/login')->with('success', 'Đăng ký tài khoản thành công!');
     }
 }
