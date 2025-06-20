@@ -19,7 +19,6 @@ class DatabaseSeeder extends Seeder
             'last_name' => 'Super',
             'email' => 'superadmin@khgc.com',
             'password' => Hash::make('Abcd@1234'),
-            'address' => 'Hà Nội',
             'status' => 0,
             'role' => 'admin',
         ]);

@@ -10,6 +10,10 @@ class CheckStatus
 {
     public function handle(Request $request, Closure $next)
     {
+        // //Check Auth
+        // if (Auth::check() && Auth::user()->status == "0") {
+        //     return redirect()->route('login')->withErrors(['email' => 'Tài khoản của bạn đang chờ phê duyệt.']);
+        // }
         $user = Auth::user();
         if ($user) {
             if ($user->status == 0) {

@@ -55,7 +55,9 @@ class User extends Authenticatable
      *
      * @return string
      */
-    public function getNameAttribute()
+    
+    //Dùng Accessor để tạo thuộc tính ảo
+     public function getNameAttribute()
     {
         return $this->first_name . ' ' . $this->last_name;
     }

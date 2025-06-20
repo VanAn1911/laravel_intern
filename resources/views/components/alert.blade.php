@@ -1,3 +1,4 @@
-<div class="alert alert-{{ $type }}">
+@props(['message', 'type'])
+<div class="alert alert-{{ $type }}" role="alert">
     {{ $message }}
 </div>

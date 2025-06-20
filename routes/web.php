@@ -21,63 +21,59 @@ Route::get('/send-email', function () {
     return "Email đã được gửi!";
 });
 
-Route::middleware(['auth', 'check.status'])->group(function () {
+//  Route::middleware(['auth', 'check.status'])->group(function () {
     Route::get('/posts', function () {
         return view('posts.index');
     })->name('posts.index');
-    // Các route khác
+
+//  });
+
+
+
+//Callback Funtion: Trả về dữ liệu trực tiếp từ route
+Route::get('/callback', function () {
+    return "Xin Chào";
 });
 
+//Route::view: Trả trực tiếp về view
+Route::get('/home', function () {
+    return view('home');
+});
 
+//Controller: Sử dụng controller để xử lý logic
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\PostController;
 
-// //Callback Funtion: Trả về dữ liệu trực tiếp từ route
-// Route::get('/callback', function () {
-//     return "Xin Chào";
-// });
+// Gắn route với controller và phương thức
+Route::get('/users', [UserController::class, 'index']);
+Route::get('/users/{id}', [UserController::class, 'show']);
 
-// //Route::view: Trả trực tiếp về view
-// Route::get('/home', function () {
-//     return view('home');
-// });
+//Route Parameters: Truyền tham số vào route
+// Tham số bắt buộc: {id} phải được truyền vào URL
+Route::get('/user/{id}', function ($id) {
+    return 'ID người dùng: ' . $id;
+});
 
-// //Controller: Sử dụng controller để xử lý logic
-// use App\Http\Controllers\UserController;
-// use App\Http\Controllers\PostController;
+// Tham số tùy chọn: {name?} có thể không truyền
+Route::get('/greeting/{name?}', function ($name = 'Khách') {
+    return 'Xin chào, ' . $name;
+});
 
-// // Gắn route với controller và phương thức
-// Route::get('/users', [UserController::class, 'index']);
-// Route::get('/users/{id}', [UserController::class, 'show']);
+//Route name: Đặt tên cho route để dễ dàng tham chiếu
+Route::get('/profile', [UserController::class, 'show'])->name('user.profile');
 
-// //Route Parameters: Truyền tham số vào route
-// // Tham số bắt buộc: {id} phải được truyền vào URL
-// Route::get('/user/{id}', function ($id) {
-//     return 'ID người dùng: ' . $id;
-// });
-
-// // Tham số tùy chọn: {name?} có thể không truyền
-// Route::get('/greeting/{name?}', function ($name = 'Khách') {
-//     return 'Xin chào, ' . $name;
-// });
-
-// //Route name: Đặt tên cho route để dễ dàng tham chiếu
-// Route::get('/profile', [UserController::class, 'show'])->name('user.profile');
-
-// //Route Group: Nhóm các route có cùng tiền tố
-// // Route group với prefix và resource controller
+//Route Group: Nhóm các route có cùng tiền tố
+// Route group với prefix và resource controller
 // Route::prefix('admin')->group(function () {
 //     // Resource controller tự động tạo các route CRUD
 //     Route::resource('posts', PostController::class);
 // });
 
-// //Truyền dữ liệu vào view
-// Route::get('/home-data', function () {
-//     $data = [
-//         'ten' => 'Nguyễn Văn A',
-//         'tuoi' => 25,
-//         'mo_ta' => 'Sinh viên ngành Công nghệ thông tin'
-//     ];
-//     return view('example', $data);
-// });
+//Truyền dữ liệu vào view
+Route::get('/home-data', function () {
+    $name = "An";
+    return view('example', compact('name'));
+});
 
 
 

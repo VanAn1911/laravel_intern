@@ -51,7 +51,8 @@ class RegisterController extends Controller
      * @param  array  $data
      * @return \Illuminate\Contracts\Validation\Validator
      */
-    protected function validator(array $data)
+    //check dữ liệu đăng ký
+     protected function validator(array $data)
     {
         return Validator::make($data, [
             'first_name' => ['required', 'string', 'max:30'],
