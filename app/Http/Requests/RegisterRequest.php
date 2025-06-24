@@ -2,6 +2,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Password;
 
 class RegisterRequest extends FormRequest
 {
@@ -21,25 +22,37 @@ class RegisterRequest extends FormRequest
                 'email',
                 'max:100',
                 'unique:users,email',
-                // Có thể thêm rule kiểm tra domain nếu muốn
+                
             ],
             'password' => [
-                'required',
-                'string',
-                'min:8',
-                'regex:/[a-z]/',      // ký tự thường
-                'regex:/[A-Z]/',      // ký tự hoa
-                'regex:/[0-9]/',      // số
-                'regex:/[@$!%*#?&]/', // ký tự đặc biệt
-                'confirmed'
-            ],
+            'required',
+            'string',
+            'confirmed',
+            Password::min(8)
+                ->mixedCase() // cả hoa và thường
+                ->letters()   // có chữ cái
+                ->numbers()   // có số
+                ->symbols(),  // có ký tự đặc biệt
+             ],
         ];
     }
 
     public function messages()
     {
-        return [
-            'password.regex' => 'Mật khẩu phải có ký tự hoa, thường, số và ký tự đặc biệt.',
-        ];
-    }
+          return [
+        'first_name.required' => 'Vui lòng nhập họ.',
+        'last_name.required' => 'Vui lòng nhập tên.',
+        'email.required' => 'Vui lòng nhập email.',
+        'email.unique' => 'Email này đã được sử dụng.',
+        'email.email' => 'Vui lòng nhập địa chỉ email hợp lệ.',
+        'password.confirmed' => 'Xác nhận mật khẩu không khớp.',
+        'password.required' => 'Vui lòng nhập mật khẩu.',
+        'password.min' => 'Mật khẩu phải có ít nhất :min ký tự.',
+        'password.*' => 'Mật khẩu phải có ký tự hoa, thường, số và ký tự đặc biệt.',
+        'password.mixedCase' => 'Mật khẩu phải có cả chữ hoa và chữ thường.',
+        'password.letters' => 'Mật khẩu phải có ít nhất một ký tự chữ cái.',
+        'password.numbers' => 'Mật khẩu phải có ít nhất một số.',
+        'password.symbols' => 'Mật khẩu phải có ít nhất một ký tự đặc biệt.',
+     ];
+     }
 }

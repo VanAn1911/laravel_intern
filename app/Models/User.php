@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Enums\UserStatus;
 
 class User extends Authenticatable
 {
@@ -17,7 +18,11 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
-    protected $fillable = [
+    //chuyển đổi status từ string sang enum
+     protected $casts = [
+        'status' => UserStatus::class,
+    ];
+     protected $fillable = [
         'first_name',
         'last_name',
         'email',
@@ -61,4 +66,13 @@ class User extends Authenticatable
     {
         return $this->first_name . ' ' . $this->last_name;
     }
+//     protected function address(): Attribute
+// {
+//     return Attribute::make(
+//         get: fn (mixed $value, array $attributes) => new Address(
+//             $attributes['address_line_one'],
+//             $attributes['address_line_two'],
+//         ),
+//     );
+//}
 }

@@ -16,10 +16,10 @@
                         @csrf
 
                         <div class="row mb-3">
-                            <label for="email" class="col-md-4 col-form-label text-md-end">Email</label>
+                            <label for="email" class="col-md-4 col-form-label text-md-end">Email <span style="color: red">*</span></label>
 
                             <div class="col-md-6">
-                                <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="" required autocomplete="off" autofocus>
+                                <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="" autocomplete="off" autofocus>
 
                                 @error('email')
                                     <span class="invalid-feedback" role="alert">
@@ -30,10 +30,10 @@
                         </div>
 
                         <div class="row mb-3">
-                            <label for="password" class="col-md-4 col-form-label text-md-end">Mật khẩu</label>
+                            <label for="password" class="col-md-4 col-form-label text-md-end">Mật khẩu <span style="color: red">*</span></label>
 
                             <div class="col-md-6">
-                                <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="new-password" value="">
+                                <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" autocomplete="new-password" value="">
 
                                 @error('password')
                                     <span class="invalid-feedback" role="alert">

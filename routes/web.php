@@ -6,6 +6,7 @@ use App\Mail\SendEmail;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Auth\RegisterController;
 
 //Tự đông đăng ký các route xác thực
 Auth::routes();
@@ -14,21 +15,20 @@ Route::get('/', function () {
     return view('auth.login');
 });
 
+Route::get('/register', [RegisterController::class, 'showRegisterForm'])->name('register');
+
+  Route::middleware(['auth', 'check.status'])->group(function () {
+    Route::get('/posts', function () {
+        return view('posts.index');
+    })->name('posts.index');
+
+  });
 
 Route::get('/send-email', function () {
     $email_message = 'Kiểm tra gửi Mail từ Laravel!';
     Mail::to('recipient@example.com')->send(new SendEmail($email_message));
     return "Email đã được gửi!";
 });
-
-//  Route::middleware(['auth', 'check.status'])->group(function () {
-    Route::get('/posts', function () {
-        return view('posts.index');
-    })->name('posts.index');
-
-//  });
-
-
 
 //Callback Funtion: Trả về dữ liệu trực tiếp từ route
 Route::get('/callback', function () {
@@ -37,7 +37,7 @@ Route::get('/callback', function () {
 
 //Route::view: Trả trực tiếp về view
 Route::get('/home', function () {
-    return view('home');
+    return view('auth.login');
 });
 
 //Controller: Sử dụng controller để xử lý logic
@@ -62,12 +62,12 @@ Route::get('/greeting/{name?}', function ($name = 'Khách') {
 //Route name: Đặt tên cho route để dễ dàng tham chiếu
 Route::get('/profile', [UserController::class, 'show'])->name('user.profile');
 
-//Route Group: Nhóm các route có cùng tiền tố
+// Route Group: Nhóm các route có cùng tiền tố
 // Route group với prefix và resource controller
-// Route::prefix('admin')->group(function () {
-//     // Resource controller tự động tạo các route CRUD
-//     Route::resource('posts', PostController::class);
-// });
+Route::prefix('admin')->group(function () {
+    // Resource controller tự động tạo các route CRUD
+    Route::resource('posts', PostController::class);
+});
 
 //Truyền dữ liệu vào view
 Route::get('/demo', function () {
