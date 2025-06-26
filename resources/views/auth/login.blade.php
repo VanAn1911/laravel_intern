@@ -7,6 +7,11 @@
             Đăng kí tài khoản thành công
         </div>
     @endif
+    @if(session('reset_success'))
+        <div class="alert alert-success">
+            Đặt lại mật khẩu thành công
+        </div>
+    @endif
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card">
@@ -48,6 +53,9 @@
                                 <button type="submit" class="btn btn-primary">
                                     Đăng nhập
                                 </button>
+                                <a class="btn btn-link" href="{{ route('password.request') }}">
+                                    Quên mật khẩu?
+                                </a>
                             </div>
                         </div>
                     </form>

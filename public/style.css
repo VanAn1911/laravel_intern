@@ -9,3 +9,10 @@ body {
 .container {
     flex: 1;
 }
+footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background: #f8f9fa;
+    padding: 1rem;
+}

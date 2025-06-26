@@ -11,21 +11,17 @@ class CheckStatus
 {
     public function handle(Request $request, Closure $next)
     {
-        // //Check Auth
-        // if (Auth::check() && Auth::user()->status == "0") {
-        //     return redirect()->route('login')->withErrors(['email' => 'Tài khoản của bạn đang chờ phê duyệt.']);
-        // }
         $user = Auth::user();
         if ($user) {
-            if ($user->status === UserStatus::Pending) {
+            if ($user->status === UserStatus::PENDING) {
                 Auth::logout();
                 return redirect()->back()->withErrors(['email' => 'Tài khoản của bạn đang chờ phê duyệt.']);
             }
-            if ($user->status === UserStatus::Rejected) {
+            if ($user->status === UserStatus::REJECTED) {
                 Auth::logout();
                 return redirect()->back()->withErrors(['email' => 'Tài khoản của bạn đã bị từ chối.']);
             }
-            if ($user->status === UserStatus::Blocked) {
+            if ($user->status === UserStatus::BLOCKED) {
                 Auth::logout();
                 return redirect()->back()->withErrors(['email' => 'Tài khoản của bạn đã bị khóa.']);
             }

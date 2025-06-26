@@ -19,7 +19,7 @@
         <p>Danh sách người dùng:</p>
         <ul>
             @foreach($users as $user)
-                <li>{{ $user->name }}</li>
+                <li>{{ $loop->first }}-{{ $user->name }}</li>
             @endforeach
         </ul>
 
@@ -43,27 +43,7 @@
             Lỗi rồi! Dữ liệu không tồn tại.
         @endcomponent
 
-        {{-- filepath: resources/views/example.blade.php --}}
 
-        {{-- <table>
-            <thead>
-                <tr>
-                    <th>Tiêu đề</th>
-                    <th>Tác giả</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($posts as $post)
-                    <tr>
-                        <td>{{ $post->title }}</td>
-                        <td>{{ $post->user->name }}</td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
-
-        {{-- Hiển thị phân trang --}}
-        {{-- {{ $posts->links() }} --}}
     @endsection
 
     @push('styles')

@@ -10,7 +10,9 @@
                     <form method="POST" action="{{ route('register') }}">
                         {{-- Thêm token CSRF để bảo vệ khỏi tấn công CSRF (Cross-Site Request Forgery) --}}
                         @csrf
-                         {{-- <input type="file" name="image"> --}}
+                        {{-- Phương thức get để gửi dữ liệu đăng ký --}}
+                        {{-- @method('GET') --}}
+                        
                         <div class="row mb-3">
                             <label for="first_name" class="col-md-4 col-form-label text-md-end">Họ <span style="color: red">*</span></label>
                             <div class="col-md-6">

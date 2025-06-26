@@ -31,7 +31,7 @@ class RegisterController extends Controller
     {
         $user = $this->create($request->validated());
         SendWelcomeEmail::dispatch($user);
-        return redirect('/login')->with('success', 'Đăng ký tài khoản thành công!');
+        return to_route('login')->with('success', 'Đăng ký tài khoản thành công!');
     }
 
     protected function create(array $data)
@@ -44,7 +44,7 @@ class RegisterController extends Controller
                     'last_name'  => $data['last_name'],
                     'email'      => $data['email'],
                     'password'   => Hash::make($data['password']),
-                    'status'     => UserStatus::Pending,
+                    'status'     => UserStatus::PENDING,
                     'role'       => 'user',
                 ]);
 

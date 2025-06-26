@@ -3,8 +3,18 @@ namespace App\Enums;
 
 enum UserStatus: int
 {
-    case Pending = 0;   // Chờ phê duyệt
-    case Approved = 1;  // Được phê duyệt
-    case Rejected = 2;  // Bị từ chối
-    case Blocked = 3;   // Bị khoá
+    case PENDING = 0;   // Chờ phê duyệt
+    case APPROVED = 1;  // Được phê duyệt
+    case REJECTED = 2;  // Bị từ chối
+    case BLOCKED = 3;   // Bị khoá
+
+    public function label(): string
+    {
+        return match($this) {
+            self::PENDING   => 'Chờ phê duyệt',
+            self::APPROVED  => 'Được phê duyệt',
+            self::REJECTED  => 'Bị từ chối',
+            self::BLOCKED   => 'Bị khoá',
+        };
+    }
 }

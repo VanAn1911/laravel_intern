@@ -18,11 +18,14 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
+    //ép kiểu các thuộc tính để có thể gán giá trị hàng loạt
     //chuyển đổi status từ string sang enum
      protected $casts = [
         'status' => UserStatus::class,
     ];
-     protected $fillable = [
+
+    //xác định các thuộc tính có thể gán giá trị hàng loạt, giúp chống lại tấn công gán giá trị hàng loạt
+    protected $fillable = [
         'first_name',
         'last_name',
         'email',
@@ -37,7 +40,9 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
-    protected $hidden = [
+
+     //danh sách các thuộc tính sẽ được ẩn khi chuyển đổi thành mảng hoặc JSON
+     protected $hidden = [
         'password',
         'remember_token',
     ];
@@ -52,6 +57,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'status' => UserStatus::class, // Chuyển đổi status từ string sang enum
         ];
     }
 

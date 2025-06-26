@@ -32,8 +32,8 @@ class LoginController extends Controller
     }
 
     /**
- * @param \App\Http\Requests\LoginRequest $request
- */
+     * @param \App\Http\Requests\LoginRequest $request
+     */
     public function login(LoginRequest $request)
     {
 
@@ -48,14 +48,16 @@ class LoginController extends Controller
             'email' => 'Email hoặc mật khẩu không đúng.',
         ])->withInput($request->only('email'));
     }
+    
     // Hiển thị thông báo đăng nhập thành công khi chuyển hướng
     protected function authenticated(Request $request, $user)
-    {
-        return redirect()->route('posts.index')->with('login_success', true);
+    {   
+        return to_route('posts.index')->with('login_success', true);
     }
 
     public function showLoginForm(Request $request)
     {
+        // Kiểm tra nếu người dùng đã đăng nhập
         if (Auth::check()) {
             // Quay lại trang trước đó
             return redirect()->back()->with('info', 'Bạn đã đăng nhập!');

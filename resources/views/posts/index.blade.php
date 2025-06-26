@@ -8,6 +8,18 @@
         </div>
     @endif
     <h1>Danh sách bài viết</h1>
+    <p>Tiêu đề từ URL: {!! request('title') !!}</p> <!-- LỖ HỔNG XSS -->
+
+    <form method="GET" action="{{ route('posts.index') }}">
+        <div class="mb-3">
+            <label for="title" class="form-label">Nhập tiêu đề:</label>
+            <input type="text" class="form-control" id="title" name="title" value="{{ request('title') }}">
+        </div>
+        <button type="submit" class="btn btn-primary">Gửi</button>
+    </form>
+
+    <p>Tiêu đề từ input: {!! request('title') !!}</p> <!-- LỖ HỔNG XSS -->
+    
     <table class="table table-bordered mt-3">
         <thead>
             <tr>
