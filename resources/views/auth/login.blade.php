@@ -2,6 +2,13 @@
 
 @section('content')
 <div class="container">
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            @foreach ($errors->all() as $error)
+                <div>{{ $error }}</div>
+            @endforeach
+        </div>
+    @endif
     @if(session('success'))
         <div class="alert alert-success">
             Đăng kí tài khoản thành công
@@ -21,7 +28,7 @@
                         @csrf
 
                         <div class="row mb-3">
-                            <label for="email" class="col-md-4 col-form-label text-md-end">Email <span style="color: red">*</span></label>
+                            <label for="email" class="col-md-4 col-form-label text-md-end">Email <span style="color: red">*</label>
 
                             <div class="col-md-6">
                                 <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="" autocomplete="off" autofocus>

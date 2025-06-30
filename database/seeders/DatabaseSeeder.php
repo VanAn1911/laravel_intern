@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
+
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
+use Database\Seeders\PostSeeder; // Assuming you have a PostSeeder to seed posts
 
 class DatabaseSeeder extends Seeder
 {
@@ -13,14 +13,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Tạo tài khoản Admin
-        User::create([
-            'first_name' => 'Admin',
-            'last_name' => 'Super',
-            'email' => 'superadmin@khgc.com',
-            'password' => Hash::make('Abcd@1234'),
-            'status' => 0,
-            'role' => 'admin',
-        ]);
+        $this->call(UserSeeder::class); 
+        $this->call(PostSeeder::class);
     }
 }

@@ -8,9 +8,15 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use Mews\Purifier\Facades\Purifier;
+use App\Http\Controllers\PostController;
+use App\Http\Controllers\NewsController;
 
 //Tự đông đăng ký các route xác thực
-Auth::routes();
+Auth::routes(); //còn logout vẫn sài
+
+Route::get('/news', [NewsController::class, 'index'])->name('news.index');
+Route::get('/news/{slug}', [NewsController::class, 'show'])->name('news.show');
 
 Route::get('/', function () {
     return view('home');
@@ -34,10 +40,11 @@ Route::middleware(['guest'])->group(function () {
 }); 
 
   Route::middleware(['auth', 'check.status'])->group(function () {
-    Route::get('/posts', function () {
-        return view('posts.index');
-    })->name('posts.index');
+    Route::get('/posts', function () {return view('posts.index');})->name('posts.index');
     
+    Route::resource('posts', PostController::class);
+    Route::delete('posts-delete-all', [PostController::class, 'destroyAll'])->name('posts.destroyAll');
+
     Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
   });
@@ -85,16 +92,17 @@ Route::middleware(['guest'])->group(function () {
 //     Route::resource('posts', PostController::class);
 // });
 
-// //Truyền dữ liệu vào view
-// Route::get('/demo', function () {
-//     $name = "An";
-//     $users = [
-//             (object)['name' => 'An'],
-//             (object)['name' => 'Bình'],
-//             (object)['name' => 'Chi'],
-//         ];
-//     return view('example', compact('name', 'users'));
-// });
+//Truyền dữ liệu vào view
+Route::get('/demo', function (Request $request) {
+    $safeTitle = Purifier::clean($request->query('title'));//sử dụng Purifier để làm sạch dữ liệu đầu vào
+    $name = "An";
+    $users = [
+            (object)['name' => 'An'],
+            (object)['name' => 'Bình'],
+            (object)['name' => 'Chi'],
+        ];
+    return view('example', compact('name', 'users', 'safeTitle'));
+})->name('demo');
 
 
 

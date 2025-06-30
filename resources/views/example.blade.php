@@ -3,6 +3,18 @@
     @section('title', 'Ví dụ')
 
     @section('content')
+         <form method="GET" action="{{ route('demo') }}">
+            <div class="mb-3">
+                <label for="title" class="form-label">Nhập tiêu đề:</label>
+                <input type="text" class="form-control" id="title" name="title" value="{{ request('title') }}">
+            </div>
+            <button type="submit" class="btn btn-primary">Gửi</button>
+        </form>
+
+    {{-- <p>Tiêu đề từ input: {!! request('title') !!}</p> <!-- LỖ HỔNG XSS -->  --}}
+    {{-- {{-- <p>Tiêu đề từ input: {{ request('title') }}</p>  --}}
+    <p>Tiêu đề đã được làm sạch: {!! $safeTitle !!}</p> --}}
+
         <div>
             <!-- Hiển thị biến đơn giản -->
             <p>Tên: {{ $name }}</p>

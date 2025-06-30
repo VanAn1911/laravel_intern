@@ -36,23 +36,23 @@ class RegisterController extends Controller
 
     protected function create(array $data)
     {
+        DB::beginTransaction();
+
         try {
-            // Sử dụng transaction để đảm bảo tính toàn vẹn dữ liệu, nếu có lỗi xảy ra, sẽ rollback toàn bộ giao dịch
-            return DB::transaction(function () use ($data) {
-                $user = User::create([
-                    'first_name' => $data['first_name'],
-                    'last_name'  => $data['last_name'],
-                    'email'      => $data['email'],
-                    'password'   => Hash::make($data['password']),
-                    'status'     => UserStatus::PENDING,
-                    'role'       => 'user',
-                ]);
+            $user = User::create([
+                'first_name' => $data['first_name'],
+                'last_name'  => $data['last_name'],
+                'email'      => $data['email'],
+                'password'   => Hash::make($data['password']),
+                'status'     => UserStatus::PENDING,
+                'role'       => 'user',
+            ]);
 
+            DB::commit(); // phải commit thủ công nếu mọi thứ OK
 
-                return $user;
-            });
+            return $user;
         } catch (\Exception $e) {
-            // Xử lý lỗi nếu cần
+            DB::rollBack(); // rollback nếu có lỗi
             return back()->withErrors(['register_error' => 'Đăng ký thất bại: ' . $e->getMessage()]);
         }
     }
@@ -61,7 +61,7 @@ class RegisterController extends Controller
     {
         if (Auth::check()) {
             // Quay lại trang trước đó
-            return redirect()->back()->with('info', 'Bạn đã đăng nhập!');
+            return back()->with('info', 'Bạn đã đăng nhập!');
         }
         return view('auth.register');
     }

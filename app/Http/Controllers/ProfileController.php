@@ -16,8 +16,8 @@ class ProfileController extends Controller
 
     public function update(UpdateProfileRequest $request)
     {
-    $user = Auth::user();
-    $user->update($request->validated());
+        $user = Auth::user();
+        $user->update($request->validated());
 
         return to_route('profile.edit')->with('success', 'Cập nhật hồ sơ thành công');
     }

@@ -2,53 +2,78 @@
 
 @section('content')
 <div class="container">
-    @if(session('login_success'))
-        <div class="alert alert-success">
-            Đăng nhập thành công
-        </div>
+    @if(session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
     @endif
+
     <h1>Danh sách bài viết</h1>
-    <p>Tiêu đề từ URL: {!! request('title') !!}</p> <!-- LỖ HỔNG XSS -->
-
-    <form method="GET" action="{{ route('posts.index') }}">
-        <div class="mb-3">
-            <label for="title" class="form-label">Nhập tiêu đề:</label>
-            <input type="text" class="form-control" id="title" name="title" value="{{ request('title') }}">
-        </div>
-        <button type="submit" class="btn btn-primary">Gửi</button>
+    <a href="{{ route('posts.create') }}" class="btn btn-primary mb-2">Tạo mới bài viết</a>
+    <form action="{{ route('posts.destroyAll') }}" method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn xóa tất cả?')">
+        @csrf
+        @method('DELETE')
+        <button type="submit" class="btn btn-danger mb-2">Xóa tất cả</button>
     </form>
-
-    <p>Tiêu đề từ input: {!! request('title') !!}</p> <!-- LỖ HỔNG XSS -->
-    
-    <table class="table table-bordered mt-3">
+    <table id="posts-table" class="table table-bordered text-center">
         <thead>
             <tr>
                 <th>#</th>
                 <th>Tiêu đề</th>
-                <th>Tác giả</th>
+                <th>Hình ảnh</th>
+                <th>Mô tả</th>
                 <th>Ngày đăng</th>
+                <th>Trạng thái</th>
+                <th>Hành động</th>
             </tr>
         </thead>
         <tbody>
+        @foreach($posts as $i => $post)
             <tr>
-                <td>1</td>
-                <td>Bài viết mẫu 1</td>
-                <td>Admin</td>
-                <td>2025-06-19</td>
+                <td>{{ $i + 1 }}</td>
+                <td>{{ $post->title }}</td>
+                <td><img src="{{ $post->thumbnail }}" alt="{{ $post->title }}" class="img-thumbnail" width="100"></td>
+                <td>{{ $post->description }}</td>
+                <td>{{ $post->publish_date ? $post->publish_date->format('d/m/Y') : 'Chưa đặt ngày' }}</td>
+                <td>
+                    <span class="badge 
+                        @switch($post->status)
+                            @case(0) bg-secondary @break
+                            @case(1) bg-success @break
+                            @case(2) bg-danger @break
+                            @default bg-dark
+                        @endswitch
+                    ">
+                        @switch($post->status)
+                            @case(0) Bài mới @break
+                            @case(1) Đã phê duyệt @break
+                            @case(2) Từ chối @break
+                            @default Không rõ
+                        @endswitch
+                    </span>
+                </td>
+
+                <td>
+                    <a href="{{ route('posts.show', $post) }}" class="btn btn-info btn-sm">Show <i class="fas fa-eye"></i></a>
+                    <a href="{{ route('posts.edit', $post) }}" class="btn btn-warning btn-sm">Edit <i class="fas fa-edit"></i></a>
+                    <form action="{{ route('posts.destroy', $post) }}" method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn xóa?')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger btn-sm">Delete <i class="fas fa-trash-alt"></i></button>
+                    </form>
+                </td>
             </tr>
-            <tr>
-                <td>2</td>
-                <td>Bài viết mẫu 2</td>
-                <td>User</td>
-                <td>2025-06-18</td>
-            </tr>
+        @endforeach
         </tbody>
     </table>
+    <div class="mb-50 ">
+        {{ $posts->links() }}
+    </div>
 </div>
-<script>
-    // Hiển thị alert đăng nhập thành công nếu có session
-    @if(session('login_success'))
-        document.getElementById('login-success').style.display = 'block';
-    @endif
-</script>
 @endsection
+
+{{-- @push('scripts')
+<script>
+    $(document).ready(function() {
+        $('#posts-table').DataTable();
+    });
+</script>
+@endpush --}}

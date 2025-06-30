@@ -7,6 +7,9 @@ use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\LoginRequest;
+use App\Models\User;
+use App\Enums\UserStatus;
+
 
 class LoginController extends Controller
 {
@@ -38,6 +41,14 @@ class LoginController extends Controller
     {
 
         $credentials = $request->only('email', 'password');
+        $credentials['status'] = UserStatus::APPROVED; // Kiểm tra trạng thái người dùng đã được phê duyệt
+        $user = User::where('email', $credentials['email'])->first();
+
+        if ($user && $user->status !== UserStatus::APPROVED) {
+            return back()->withErrors([
+                'login' => 'Tài khoản chưa được phê duyệt.',
+            ])->withInput($request->only('email'));
+        }
 
         if (Auth::attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
@@ -60,7 +71,7 @@ class LoginController extends Controller
         // Kiểm tra nếu người dùng đã đăng nhập
         if (Auth::check()) {
             // Quay lại trang trước đó
-            return redirect()->back()->with('info', 'Bạn đã đăng nhập!');
+            return back()->with('info', 'Bạn đã đăng nhập!');
         }
         return view('auth.login');
     }

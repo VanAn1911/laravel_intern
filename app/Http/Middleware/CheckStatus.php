@@ -13,19 +13,23 @@ class CheckStatus
     {
         $user = Auth::user();
         if ($user) {
-            if ($user->status === UserStatus::PENDING) {
-                Auth::logout();
-                return redirect()->back()->withErrors(['email' => 'Tài khoản của bạn đang chờ phê duyệt.']);
-            }
-            if ($user->status === UserStatus::REJECTED) {
-                Auth::logout();
-                return redirect()->back()->withErrors(['email' => 'Tài khoản của bạn đã bị từ chối.']);
-            }
-            if ($user->status === UserStatus::BLOCKED) {
-                Auth::logout();
-                return redirect()->back()->withErrors(['email' => 'Tài khoản của bạn đã bị khóa.']);
+            switch ($user->status) {
+                case UserStatus::APPROVED:
+                    break;
+                case UserStatus::PENDING:
+                    Auth::logout();
+                    return back()->withErrors(['login' => 'Tài khoản của bạn đang chờ phê duyệt.']);
+                case UserStatus::REJECTED:
+                    Auth::logout();
+                    return back()->withErrors(['login' => 'Tài khoản của bạn đã bị từ chối.']);
+                case UserStatus::BLOCKED:
+                    Auth::logout();
+                    return back()->withErrors(['login' => 'Tài khoản của bạn đã bị khóa.']);
+                default:
+                    Auth::logout();
+                    return back()->withErrors(['login' => 'Tài khoản của bạn không hợp lệ.']);
             }
         }
         return $next($request);
-    }
+        }
 }
