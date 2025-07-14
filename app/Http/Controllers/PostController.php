@@ -8,15 +8,20 @@ use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
-
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Event;
+use App\Services\PostService;
+use Yajra\DataTables\DataTables;
+use Yajra\DataTables\Facades\DataTables as FacadesDataTables;
 
 class PostController extends Controller
 {
     // Hiển thị danh sách bài viết của user hiện tại
     public function index()
     {
-        //sử dụng pagination để phân trang bài viết
-        $posts = Post::where('user_id', Auth::id())->latest()->paginate(10);
+        
+        $posts = Post::where('user_id', Auth::id())->latest()->get(); // KHÔNG paginate()
         return view('posts.index', compact('posts'));
     }
 
@@ -29,22 +34,37 @@ class PostController extends Controller
     // Lưu bài viết mới
     public function store(StorePostRequest $request)
     {
-        $data = $request->validated();
-        $data['user_id'] = Auth::id();
-        $data['slug'] = Str::slug($data['title']); //tự động tạo slug từ tiêu đề
-        $post = Post::create($data);
-        // Xử lý upload thumbnail
-        if ($request->hasFile('thumbnail')) {
-            $post->addMediaFromRequest('thumbnail')->toMediaCollection('thumbnails');
-        }
+        DB::beginTransaction();
+        try {
+            $data = $request->validated(); //chỉ lấy dữ liệu đã xác thực từ request
+            //$data - $request->all(); // Lấy tất cả dữ liệu từ request
+            //$data = $request->only('title');
+            //$title = $request->input('title'); // Lấy dữ liệu từ trường 'title'
+            //$title = $request->title;
 
-        return redirect()->route('posts.index')->with('success', 'Tạo bài viết thành công');
+            $data['user_id'] = Auth::id();
+            $post = Post::create($data);
+            // $post = Event::withoutEvents(function () use ($data) {// Tắt sự kiện để tránh observer
+            //     return Post::create($data);
+            // });
+
+            if ($request->hasFile('thumbnail')) {                
+                $post->addMediaFromRequest('thumbnail')->toMediaCollection('thumbnails');
+            }
+
+            DB::commit();
+            return to_route('posts.index')->with('success', 'Tạo bài viết thành công');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return back()->withErrors(['error' => 'Có lỗi xảy ra: ' . $e->getMessage()]);
+        }
     }
 
     // Hiển thị form sửa bài viết
     public function edit(Post $post)
     {
-        $this->authorize('update', $post);
+        // $this->authorize('update', arguments: $abc);
+
         return view('posts.edit', compact('post'));
     }
 
@@ -52,34 +72,36 @@ class PostController extends Controller
     public function update(UpdatePostRequest $request, Post $post)
     {
         $this->authorize('update', $post);
+        DB::beginTransaction();
+        try {
+            $data = $request->validated();
+            if ($data['title'] !== $post->title) {
+                $data['slug'] = Str::slug($data['title']);
+            }
+            if (auth()->user()->role === 'admin' && $request->has('status')) {
+                $data['status'] = $request->input('status');
+            }
+            $post->update($data);
 
-        $data = $request->validated();
+            if ($request->hasFile('thumbnail')) {
+                $post->clearMediaCollection('thumbnails');
+                $post->addMediaFromRequest('thumbnail')->toMediaCollection('thumbnails');
+            }
 
-        // Nếu title thay đổi thì cập nhật slug
-        if ($data['title'] !== $post->title) {
-            $data['slug'] = \Illuminate\Support\Str::slug($data['title']);
+            DB::commit();
+            return to_route('posts.index')->with('success', 'Cập nhật bài viết thành công');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return back()->withErrors(['error' => 'Có lỗi xảy ra: ' . $e->getMessage()]);
         }
-
-        // Chỉ admin mới được đổi status
-        if (auth()->user()->role === 'admin' && $request->has('status')) {
-            $data['status'] = $request->input('status');
-        }
-
-        $post->update($data);
-
-        // Xử lý upload thumbnail mới (nếu có)
-        if ($request->hasFile('thumbnail')) {
-            $post->clearMediaCollection('thumbnails');
-            $post->addMediaFromRequest('thumbnail')->toMediaCollection('thumbnails');
-        }
-
-        return to_route('posts.index')->with('success', 'Cập nhật bài viết thành công');
     }
 
     // Xem chi tiết bài viết
     public function show(Post $post)
     {
+        
         $this->authorize('view', $post);
+        $post->load('user');// Eager load user relationship
         return view('posts.show', compact('post'));
     }
 
@@ -94,7 +116,12 @@ class PostController extends Controller
     // Xóa tất cả bài viết của user hiện tại
     public function destroyAll()
     {
-        Post::where('user_id', Auth::id())->delete();
+        Post::ownedBy(Auth::id())->delete(); // không dùng where, dùng scope
         return to_route('posts.index')->with('success', 'Đã xóa tất cả bài viết');
+    }
+
+    public function data(Request $request)
+    {
+        return response()->json(app(PostService::class)->getPosts($request));
     }
 }

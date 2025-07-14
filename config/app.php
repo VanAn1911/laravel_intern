@@ -65,7 +65,8 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => 'Asia/Ho_Chi_Minh',
+
 
     /*
     |--------------------------------------------------------------------------
@@ -77,7 +78,10 @@ return [
     | set to any locale for which you plan to have translation strings.
     |
     */
-
+    // 'providers' => [
+    //     JeroenNoten\LaravelAdminLte\AdminLteServiceProvider::class,
+    //     Yajra\DataTables\DataTablesServiceProvider::class,
+    // ],
     'locale' => env('APP_LOCALE', 'en'),
 
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),

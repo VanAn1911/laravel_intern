@@ -1,8 +1,7 @@
-
 @php
     use App\Enums\RoleEnum;
 @endphp
-@extends('adminlte::page')
+@extends('layouts.app')
 
 @section('content')
 <div class="container">
@@ -10,13 +9,13 @@
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
-    {{-- @if($errors->any())
+    @if($errors->any())
         <div class="alert alert-danger">
             @foreach($errors->all() as $error)
                 <div>{{ $error }}</div>
             @endforeach
         </div>
-    @endif --}}
+    @endif
     <form method="POST" action="{{ route('posts.update', $post) }}" enctype="multipart/form-data">
         @csrf
         @method('PUT')
@@ -27,7 +26,7 @@
             @error('title') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
         <div class="mb-3">
-            <label>Mô tả <span style="color: red">*</label>
+            <label>Mô tả</label>
             <input type="text" name="description" class="form-control @error('description') is-invalid @enderror"
                    value="{{ old('description', $post->description) }}">
             @error('description') <div class="invalid-feedback">{{ $message }}</div> @enderror
@@ -38,7 +37,7 @@
             @error('content') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
         <div class="mb-3">
-            <label>Ngày đăng <span style="color: red">*</label>
+            <label>Ngày đăng</label>
             <input type="datetime-local" name="publish_date" class="form-control @error('publish_date') is-invalid @enderror"
                    value="{{ old('publish_date', $post->publish_date ? $post->publish_date->format('Y-m-d\TH:i') : '') }}">
             @error('publish_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
@@ -53,27 +52,28 @@
             <label>Thay ảnh thumbnail</label>
             <input type="file" name="thumbnail" class="form-control">
         </div>
+        @if(auth()->user()->role === RoleEnum::ADMIN)
+        <div class="mb-3">
+            <label>Trạng thái</label>
+            <select name="status" class="form-control">
+                @foreach(\App\Enums\PostStatus::cases() as $status)
+                    <option value="{{ $status->value }}" {{ $post->status === $status ? 'selected' : '' }}>
+                        {{ $status->label() }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+        @endif
         <button type="submit" class="btn btn-primary">Cập nhật</button>
-        <a href="{{ route('posts.index') }}" class="btn btn-secondary">Quay lại</a>
+        <a href="{{ route('admin.posts.index') }}" class="btn btn-secondary">Quay lại</a>
     </form>
 </div>
 @endsection
 
-@push('js')
+@push('scripts')
 <script>
     $(document).ready(function() {
-        $('.summernote').summernote({
-            height: 300,  // Chiều cao khung nhập
-            toolbar: [
-                ['style', ['bold', 'italic', 'underline', 'clear']],
-                ['font', ['strikethrough', 'superscript', 'subscript']],
-                ['fontsize', ['fontsize']],
-                ['color', ['color']],
-                ['para', ['ul', 'ol', 'paragraph']],
-                ['insert', ['link', 'picture', 'video']],
-                ['view', ['fullscreen', 'codeview', 'help']]
-            ]
-        });
+        $('.summernote').summernote();
     });
 </script>
 @endpush

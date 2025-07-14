@@ -24,7 +24,7 @@
             <div class="card">
                 <div class="card-header">Đăng nhập</div>
                 <div class="card-body">
-                    <form method="POST" action="{{ route('login') }}">
+                    <form method="POST" action="{{ route('login.post') }}">
                         @csrf
 
                         <div class="row mb-3">

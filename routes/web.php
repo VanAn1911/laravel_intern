@@ -11,17 +11,20 @@ use App\Http\Controllers\Auth\ResetPasswordController;
 use Mews\Purifier\Facades\Purifier;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\NewsController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdminPostController;
 
 //Tự đông đăng ký các route xác thực
-Auth::routes(); //còn logout vẫn sài
+  Auth::routes(); //còn logout vẫn sài
 
-Route::get('/news', [NewsController::class, 'index'])->name('news.index');
-Route::get('/news/{slug}', [NewsController::class, 'show'])->name('news.show');
+  Route::get('/news', [NewsController::class, 'index'])->name('news.index');
+  Route::get('/news/{post:slug}', [NewsController::class, 'show'])->name('news.show');//truyền thẳng post
 
-Route::get('/', function () {
-    return view('home');
-})->name('home');
-Route::middleware(['guest'])->group(function () {
+  Route::get('/', function () {
+      return view('home');
+  })->name('home');
+  
+  Route::middleware(['guest'])->group(function () {
     // Đăng nhập
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login'])->name('login.post');
@@ -37,18 +40,25 @@ Route::middleware(['guest'])->group(function () {
     // Đặt lại mật khẩu
     Route::get('/password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
     Route::post('/password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
-}); 
+  }); 
 
   Route::middleware(['auth', 'check.status'])->group(function () {
-    Route::get('/posts', function () {return view('posts.index');})->name('posts.index');
-    
-    Route::resource('posts', PostController::class);
+    // Quản lý bài viết
+    //Route::get('/posts', function () {return view('posts.index');})->name('posts.index'); 
+    Route::get('/posts/data', [PostController::class, 'data'])->name('posts.data'); //dùng để lấy dữ liệu cho DataTables
+    Route::resource('posts', PostController::class); //đặt tên tham số là post thay vì posts
     Route::delete('posts-delete-all', [PostController::class, 'destroyAll'])->name('posts.destroyAll');
-
+    
+    // Câp nhật thông tin cá nhân
     Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
   });
 
+  Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [AdminController::class, 'index'])->name('dashboard');
+    Route::resource('posts', App\Http\Controllers\AdminPostController::class);
+    Route::resource('users', App\Http\Controllers\UserController::class);
+  });
 // Route::get('/send-email', function () {
 //     $email_message = 'Kiểm tra gửi Mail từ Laravel!';
 //     Mail::to('recipient@example.com')->send(new SendEmail($email_message));
@@ -103,6 +113,8 @@ Route::get('/demo', function (Request $request) {
         ];
     return view('example', compact('name', 'users', 'safeTitle'));
 })->name('demo');
+
+
 
 
 

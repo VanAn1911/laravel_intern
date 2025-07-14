@@ -24,8 +24,8 @@ class PostFactory extends Factory
             'content' => $this->faker->paragraph(),
             'publish_date' => now(),
             'status' => 0, // 0: mới, 1: cập nhật, 2: khác
-            'user_id' => User::inRandomOrder()->first()->id,
-            //'user_id' => '1', // Use factory to create a user
+            //'user_id' => User::inRandomOrder()->first()->id,
+            'user_id' => '12', // Use factory to create a user
         ];
     }
 

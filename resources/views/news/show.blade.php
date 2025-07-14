@@ -1,5 +1,5 @@
 {{-- filepath: resources/views/news/show.blade.php --}}
-@extends('layouts.app')
+@extends('adminlte::page')
 
 @section('content')
 <div class="container">

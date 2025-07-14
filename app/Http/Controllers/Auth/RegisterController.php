@@ -37,7 +37,6 @@ class RegisterController extends Controller
     protected function create(array $data)
     {
         DB::beginTransaction();
-
         try {
             $user = User::create([
                 'first_name' => $data['first_name'],
@@ -48,7 +47,7 @@ class RegisterController extends Controller
                 'role'       => 'user',
             ]);
 
-            DB::commit(); // phải commit thủ công nếu mọi thứ OK
+            DB::commit();
 
             return $user;
         } catch (\Exception $e) {

@@ -16,3 +16,11 @@ footer {
     background: #f8f9fa;
     padding: 1rem;
 }
+.main-sidebar {
+    width: 280px; 
+}
+
+
+.content-wrapper {
+    margin-left: 280px;
+}
