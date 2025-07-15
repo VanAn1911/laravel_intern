@@ -12,8 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Event;
 use App\Services\PostService;
-use Yajra\DataTables\DataTables;
-use Yajra\DataTables\Facades\DataTables as FacadesDataTables;
+
 
 class PostController extends Controller
 {
@@ -21,8 +20,8 @@ class PostController extends Controller
     public function index()
     {
         
-        $posts = Post::where('user_id', Auth::id())->latest()->get(); // KHÔNG paginate()
-        return view('posts.index', compact('posts'));
+        //$posts = Post::where('user_id', Auth::id())->latest()->get(); // KHÔNG paginate()
+        return view('posts.index');
     }
 
     // Hiển thị form tạo bài viết
@@ -75,9 +74,7 @@ class PostController extends Controller
         DB::beginTransaction();
         try {
             $data = $request->validated();
-            if ($data['title'] !== $post->title) {
-                $data['slug'] = Str::slug($data['title']);
-            }
+            
             if (auth()->user()->role === 'admin' && $request->has('status')) {
                 $data['status'] = $request->input('status');
             }

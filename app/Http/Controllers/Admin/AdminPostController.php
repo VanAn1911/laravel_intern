@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
 use App\Http\Requests\StorePostRequest;
@@ -8,6 +8,9 @@ use App\Http\Requests\UpdatePostRequest;
 use App\Models\Post;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str; 
+use App\Http\Controllers\Controller;
+use App\Services\AdminPostService;
+
 
 class AdminPostController extends Controller
 {
@@ -15,22 +18,8 @@ class AdminPostController extends Controller
      * Display a listing of the resource.
      */
     public function index(Request $request)
-    {
-        $query = Post::query()->with('user');
-
-        // Tìm kiếm theo title hoặc email user
-        if ($request->filled('title')) {
-            $query->where('title', 'like', '%' . $request->title . '%');
-        }
-        if ($request->filled('email')) {
-            $query->whereHas('user', function($q) use ($request) {
-                $q->where('email', 'like', '%' . $request->email . '%');
-            });
-        }
-
-        $posts = $query->latest()->paginate(15);
-
-        return view('admin.posts.index', compact('posts'));
+    {       
+        return view('admin.posts.index');
     }
 
     /**
@@ -38,29 +27,20 @@ class AdminPostController extends Controller
      */
      public function create()
     {
-        return view('posts.create');
+        //
     }
 
     // Lưu bài viết mới
     public function store(StorePostRequest $request)
     {
-        $data = $request->validated();
-        $data['user_id'] = Auth::id();
-        $data['slug'] = Str::slug($data['title']); //tự động tạo slug từ tiêu đề
-        $post = Post::create($data);
-        // Xử lý upload thumbnail
-        if ($request->hasFile('thumbnail')) {
-            $post->addMediaFromRequest('thumbnail')->toMediaCollection('thumbnails');
-        }
-
-        return to_route('posts.index')->with('success', 'Tạo bài viết thành công');
+        //
     }
 
     // Hiển thị form sửa bài viết
     public function edit(Post $post)
     {
         $this->authorize('update', $post);
-        return view('posts.edit', compact('post'));
+        return view('admin.posts.edit', compact('post'));
     }
 
     // Cập nhật bài viết
@@ -69,17 +49,8 @@ class AdminPostController extends Controller
         $this->authorize('update', $post);
 
         $data = $request->validated();
-
-        // Nếu title thay đổi thì cập nhật slug
-        if ($data['title'] !== $post->title) {
-            $data['slug'] = Str::slug($data['title']);
-        }
-
-        // Chỉ admin mới được đổi status
-        if (auth()->user()->role === 'admin' && $request->has('status')) {
-            $data['status'] = $request->input('status');
-        }
-
+        $data['status'] = $request->input('status');
+    
         $post->update($data);
 
         // Xử lý upload thumbnail mới (nếu có)
@@ -103,13 +74,18 @@ class AdminPostController extends Controller
     {
         $this->authorize('delete', $post);
         $post->delete();
-        return to_route('posts.index')->with('success', 'Xóa bài viết thành công');
+        return to_route('admin.posts.index')->with('success', 'Xóa bài viết thành công');
     }
 
     // Xóa tất cả bài viết của user hiện tại
     public function destroyAll()
     {
         Post::where('user_id', Auth::id())->delete();
-        return to_route('posts.index')->with('success', 'Đã xóa tất cả bài viết');
+        return to_route('admin.posts.index')->with('success', 'Đã xóa tất cả bài viết');
+    }
+
+    public function data(Request $request)
+    {
+        return response()->json(app(AdminPostService::class)->getPosts($request));
     }
 }

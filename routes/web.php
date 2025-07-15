@@ -11,8 +11,9 @@ use App\Http\Controllers\Auth\ResetPasswordController;
 use Mews\Purifier\Facades\Purifier;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\NewsController;
-use App\Http\Controllers\AdminController;
-use App\Http\Controllers\AdminPostController;
+use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\AdminPostController;
+use App\Http\Controllers\Admin\UserController;
 
 //Tự đông đăng ký các route xác thực
   Auth::routes(); //còn logout vẫn sài
@@ -56,8 +57,9 @@ use App\Http\Controllers\AdminPostController;
 
   Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('dashboard');
-    Route::resource('posts', App\Http\Controllers\AdminPostController::class);
-    Route::resource('users', App\Http\Controllers\UserController::class);
+    Route::get('/posts/data', [AdminPostController::class, 'data'])->name('posts.data');
+    Route::resource('posts', AdminPostController::class);
+    Route::resource('users', UserController::class);
   });
 // Route::get('/send-email', function () {
 //     $email_message = 'Kiểm tra gửi Mail từ Laravel!';

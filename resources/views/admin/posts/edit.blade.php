@@ -1,7 +1,7 @@
 @php
     use App\Enums\RoleEnum;
 @endphp
-@extends('layouts.app')
+@extends('adminlte::page')
 
 @section('content')
 <div class="container">
@@ -16,7 +16,7 @@
             @endforeach
         </div>
     @endif
-    <form method="POST" action="{{ route('posts.update', $post) }}" enctype="multipart/form-data">
+    <form method="POST" action="{{ route('admin.posts.update', $post) }}" enctype="multipart/form-data">
         @csrf
         @method('PUT')
         <div class="mb-3">

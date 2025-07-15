@@ -299,6 +299,18 @@ return [
 
     'menu' => [
         [
+        'text' => 'Quản lý bài viết',
+        'route' => 'admin.posts.index',
+        'icon' => 'fas fa-file-alt',
+        'can' => 'is_admin',
+        ],
+        [
+            'text' => 'Quản lý user',
+            'route' => 'admin.users.index',
+            'icon' => 'fas fa-users',
+            'can' => 'is_admin',
+        ],
+        [
             'text' => 'Tin tức',
             'route' => 'news.index',
             'icon' => 'fas fa-newspaper',

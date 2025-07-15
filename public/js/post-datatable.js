@@ -1,3 +1,4 @@
+console.log('>>post-datatable.js has loaded');
 $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -23,16 +24,16 @@ $(document).ready(function () {
         pageLength: 5,
         lengthMenu: [[5, 10, 25], [5, 10, 25]],        
         columns: [
-            { data: 'varIndex', name: 'varIndex', orderable: false, searchable: false },
+            { data: 'varIndex', name: 'varIndex', orderable: true, searchable: false },
             { data: 'title', name: 'title' },
-            { data: 'thumbnail', name: 'thumbnail', orderable: false, searchable: false,
+            { data: 'thumbnail', name: 'thumbnail', orderable: true, searchable: true,
                 render: function (data) {
                     return `<img src="${data}" alt="thumbnail" style="max-width: 50px;">`;
                 }
             },
             { data: 'description', name: 'description' },
             { data: 'publish_date', name: 'publish_date' },
-            { data: 'status_label', name: 'status', orderable: false, searchable: false },
+            { data: 'status_label', name: 'status', orderable: true, searchable: true },
             { data: 'action', name: 'action', orderable: false, searchable: false }
         ]
     });

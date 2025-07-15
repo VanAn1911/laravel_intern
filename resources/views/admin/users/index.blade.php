@@ -2,7 +2,7 @@
 <?php
 use App\Enums\UserStatus;
 ?>
-@extends('layouts.app')
+@extends('adminlte::page')
 
 @section('content')
 <div class="container">
@@ -28,7 +28,7 @@ use App\Enums\UserStatus;
                 </tr>
             </thead>
             <tbody>
-                @foreach($users as $user)
+                {{-- @foreach($users as $user)
                     <tr>
                         <td>{{ $user->first_name }} {{ $user->last_name }}</td>
                         <td>{{ $user->email }}</td>
@@ -58,7 +58,7 @@ use App\Enums\UserStatus;
                             <a href="{{ route('admin.users.edit', $user->id) }}" class="btn btn-sm btn-warning">Sửa</a>
                         </td>
                     </tr>
-                @endforeach
+                @endforeach --}}
             </tbody>
         </table>
 </div>
