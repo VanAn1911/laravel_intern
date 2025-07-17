@@ -28,9 +28,11 @@
         <div class="mb-3">
             <label>Trạng thái</label>
             <select name="status" class="form-control @error('status') is-invalid @enderror">
-                <option value="pending" {{ $user->status == 'pending' ? 'selected' : '' }}>Chờ duyệt</option>
-                <option value="active" {{ $user->status == 'active' ? 'selected' : '' }}>Hoạt động</option>
-                <option value="banned" {{ $user->status == 'banned' ? 'selected' : '' }}>Đã khóa</option>
+                @foreach(\App\Enums\UserStatus::cases() as $status)
+                    <option value="{{ $status->value }}" {{ $user->status === $status->value ? 'selected' : '' }}>
+                        {{ $status->label() }}
+                    </option>
+                @endforeach
             </select>
             @error('status') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>

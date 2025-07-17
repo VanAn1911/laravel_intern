@@ -4,19 +4,23 @@ namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
 use App\Http\Requests\StorePostRequest;
-use App\Http\Requests\UpdatePostRequest;
+use App\Http\Requests\AdminUpdatePostRequest;
 use App\Models\Post;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str; 
 use App\Http\Controllers\Controller;
 use App\Services\AdminPostService;
+use App\Jobs\SendStatusUpdatedMail;
 
 
-class AdminPostController extends Controller
+class PostController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    protected $adminPostService;
+
+    public function __construct(AdminPostService $adminPostService)
+    {
+        $this->adminPostService = $adminPostService;
+    }
     public function index(Request $request)
     {       
         return view('admin.posts.index');
@@ -44,23 +48,23 @@ class AdminPostController extends Controller
     }
 
     // Cập nhật bài viết
-    public function update(UpdatePostRequest $request, Post $post)
+    public function update(AdminUpdatePostRequest $request, Post $post)
     {
         $this->authorize('update', $post);
+        
+        try {
+            $data = $request->validated();            
+            $thumbnail = $request->hasFile('thumbnail') ? $request->file('thumbnail') : null;
 
-        $data = $request->validated();
-        $data['status'] = $request->input('status');
-    
-        $post->update($data);
+            $updatedPost = $this->adminPostService->update($post, $data, $thumbnail);
 
-        // Xử lý upload thumbnail mới (nếu có)
-        if ($request->hasFile('thumbnail')) {
-            $post->clearMediaCollection('thumbnails');
-            $post->addMediaFromRequest('thumbnail')->toMediaCollection('thumbnails');
+            return to_route('admin.posts.index')->with('success', 'Cập nhật bài viết thành công');
+        } catch (\Throwable $e) {
+            return back()->withErrors(['error' => 'Có lỗi xảy ra: ' . $e->getMessage()]);
         }
-
-        return to_route('admin.posts.index')->with('success', 'Cập nhật bài viết thành công');
     }
+
+
 
     // Xem chi tiết bài viết
     public function show(Post $post)
@@ -70,18 +74,17 @@ class AdminPostController extends Controller
     }
 
     // Xóa mềm bài viết
-    public function destroy(Post $post)
+   public function destroy(Post $post)
     {
         $this->authorize('delete', $post);
-        $post->delete();
-        return to_route('admin.posts.index')->with('success', 'Xóa bài viết thành công');
+        $this->adminPostService->delete($post);
+        return response()->json(['success' => true]);
     }
 
-    // Xóa tất cả bài viết của user hiện tại
     public function destroyAll()
     {
-        Post::where('user_id', Auth::id())->delete();
-        return to_route('admin.posts.index')->with('success', 'Đã xóa tất cả bài viết');
+        $this->adminPostService->deleteAll(Auth::id());
+        return response()->json(['success' => true]);
     }
 
     public function data(Request $request)

@@ -24,4 +24,14 @@ enum PostStatus: int
             self::REJECTED => 'danger',
         };
     }
+
+    public function toArray(): array
+    {
+        return [
+            'value' => $this->value,
+            'label' => $this->label(),
+            'color' => $this->color(),
+        ];
+    }
+
 }

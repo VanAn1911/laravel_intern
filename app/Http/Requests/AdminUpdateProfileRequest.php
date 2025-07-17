@@ -8,7 +8,7 @@ use App\Enums\UserStatus;
 use Illuminate\Validation\Rules\Enum;
 use Illuminate\Support\Facades\Log;
 
-class UpdateProfileRequest extends FormRequest
+class AdminUpdateProfileRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -29,12 +29,8 @@ class UpdateProfileRequest extends FormRequest
             'first_name' => 'required|string|max:255',
             'last_name'  => 'required|string|max:255',
             'address'    => 'nullable|string|max:255',
-            //'status'     => ['required', new Enum(UserStatus::class)]
+            'status'     => ['required', new Enum(UserStatus::class)],
         ];
-        if (auth()->user()?->isAdmin()) {
-            Log::info('Adding status rule for admin');
-            $rules['status'] = ['required', new Enum(UserStatus::class)];
-        }
 
         return $rules;
     }

@@ -1,89 +1,98 @@
-
-<?php
-use App\Enums\UserStatus;
-?>
 @extends('adminlte::page')
 
 @section('content')
-<div class="container">
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
-    <h2>Quản lý người dùng</h2>
-        <form method="GET" action="{{ route('admin.users.index') }}">
-            <div class="input-group mb-3">
-                <input type="text" name="keyword" class="form-control" placeholder="Tìm tên hoặc email" value="{{ request('keyword') }}">
-                <button class="btn btn-primary">Tìm</button>
-            </div>
-        </form>
-
-        <table class="table table-bordered text-center" id="users-table">
+    <div class = "container">
+        @if(session('success'))
+            <div class="alert alert-success">{{ session('success') }}</div>
+        @endif
+        <h2>Quản lý người dùng</h2>
+        <table id="userTable" class="table table-bordered text-center">
             <thead>
                 <tr>
-                    <th style="width: 20%">Họ tên</th>
-                    <th style="width: 20%">Email</th>
-                    <th style="width: 25%">Địa chỉ</th>
-                    <th style="width: 15%">Trạng thái</th>
-                    <th style="width: 20%">Thao tác</th>
+                    <th>STT</th>
+                    <th>Tên</th>
+                    <th>Email</th>
+                    <th>Địa chỉ</th>
+                    <th>Trạng thái</th>
+                    <th>Hành động</th>
                 </tr>
             </thead>
-            <tbody>
-                {{-- @foreach($users as $user)
-                    <tr>
-                        <td>{{ $user->first_name }} {{ $user->last_name }}</td>
-                        <td>{{ $user->email }}</td>
-                        <td>{{ $user->address }}</td>
-                        <td>
-                            @php
-                                $statusEnum = ($user->status);
-                            @endphp
-                            @switch($statusEnum)
-                                @case(UserStatus::PENDING)
-                                    <span class="badge bg-secondary">{{ $statusEnum->label() }}</span>
-                                    @break
-                                @case(UserStatus::APPROVED)
-                                    <span class="badge bg-success">{{ $statusEnum->label() }}</span>
-                                    @break
-                                @case(UserStatus::REJECTED)
-                                    <span class="badge bg-danger">{{ $statusEnum->label() }}</span>
-                                    @break
-                                @case(UserStatus::BLOCKED)
-                                    <span class="badge bg-dark">{{ $statusEnum->label() }}</span>
-                                    @break
-                                @default
-                                    <span class="badge bg-warning">Không rõ</span>
-                            @endswitch
-                        </td>
-                        <td>
-                            <a href="{{ route('admin.users.edit', $user->id) }}" class="btn btn-sm btn-warning">Sửa</a>
-                        </td>
-                    </tr>
-                @endforeach --}}
-            </tbody>
+            <tbody></tbody>
         </table>
-</div>
+    </div>
 @endsection
 
-@push('scripts')
-<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
-<script>
-$(document).ready(function() {
-    $('#users-table').DataTable({
-        pageLength: 5,
-        paging: true,
-        searching: false,
-        info: false,
-        ordering: false,
-        lengthChange: false,
-        language: {
-            paginate: {
-                previous: 'Trước',
-                next: 'Sau'
+@push('js')
+    <script>
+       $.ajaxSetup({
+            headers: {
+                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
             },
-            emptyTable: "Không có dữ liệu"
-        }
-    });
-});
-</script>
+        });
+
+        $(document).ready(function () {
+            if ($.fn.DataTable.isDataTable("#userTable")) {
+                $("#userTable").DataTable().destroy();
+            }
+
+            $("#userTable").DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '{{ route('admin.users.data') }}',
+                    type: 'GET'
+                },
+                pageLength: 5,
+                lengthMenu: [[5, 10, 25], [5, 10, 25]],
+                columns: [
+                    { data: 'resourceIndex', name: 'varIndex', orderable: true, searchable: false },
+                    { data: 'name', name: 'name', orderable: true, searchable: true },
+                    { data: 'email', name: 'email', orderable: true, searchable: true },
+                    { data: 'address', name: 'address', orderable: true, searchable: true,
+                        render: function (data, type, row) {
+                            const maxLength = 20;
+                            if (typeof data !== 'string') return '';
+                            return data.length > maxLength
+                                ? `<span title="${data}">${data.substring(0, maxLength)}...</span>`
+                                : data;
+                        }
+                     },
+                    {
+                        data: 'status', name: 'status', orderable: false, searchable: false,
+                        render: function (data) {
+                            return `<span class="badge bg-${data.color}">${data.label}</span>`;
+                        }
+                    },
+                    { data: 'id', name: 'action', orderable: false, searchable: false,
+                        render: function (id, type, row) {
+                            let editUrl = '/admin/users/' + id + '/edit';
+                            let actions = `
+                                <a href="${editUrl}" class="btn btn-warning btn-sm">Sửa</a> 
+                                <a href="#" class="btn btn-danger btn-sm lock-btn" data-id="${id}">Khóa</a>
+                            `;
+                            @if(Auth::check())
+                                if (row.email === '{{ Auth::user()->email }}') actions = '';
+                            @endif
+                            return actions;
+                        }
+                    }
+                ]
+            });
+            $(document).on('click', '.lock-btn', function(e) {
+                e.preventDefault();
+                let id = $(this).data('id');
+                if(confirm('Bạn có chắc muốn khóa user này?')) {
+                    $.ajax({
+                        url: '{{ route('admin.users.lock', ['user' => ':id']) }}'.replace(':id', id),
+                        type: 'POST',
+                        data: {_token: '{{ csrf_token() }}'},
+                        success: function(res) {
+                            alert(res.message);
+                            $('#userTable').DataTable().ajax.reload(null, false);
+                        }
+                    });
+                }
+            });
+        });
+    </script>
 @endpush

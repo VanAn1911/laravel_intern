@@ -4,81 +4,110 @@ namespace App\Services;
 
 use App\Models\Post;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use App\Http\Resources\PostResource;
 
 class PostService
 {
-    public function getPosts($request)
+
+    public function getPosts($filters)
     {
-        $draw = $request->input('draw');
-        $start = $request->input('start', 0);
-        $length = $request->input('length', 10);
+        $perPage = $filters['length'] ?? 10;
+        $page = isset($filters['start']) ? floor($filters['start'] / $perPage) + 1 : 1;
+        $search = $filters['search']['value'] ?? null;
+        $orderColumnIndex = $filters['order'][0]['column'] ?? 0;
+        $orderDir = $filters['order'][0]['dir'] ?? 'asc';
+        $orderColumn = $filters['columns'][$orderColumnIndex]['data'] ?? 'created_at';
 
-        $query = Post::where('user_id', Auth::id());
+        $query = Post::ownedBy(Auth::id());
 
-        // Tìm kiếm (search)
-        $search = $request->input('search.value');
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%$search%")
-                  ->orWhere('description', 'like', "%$search%");
+                  ->orWhere('description', 'like', "%$search%")
+                  ->orWhere('status', 'like', "%$search%");
             });
         }
 
-        $totalRecords = Post::where('user_id', Auth::id())->count();
-        $recordsFiltered = $query->count();
-
-        // Sắp xếp (ordering)
-        $orderColumnIndex = $request->input('order.0.column');
-        $orderDir = $request->input('order.0.dir', 'asc');
-        $orderColumn = $request->input("columns.$orderColumnIndex.data");
-
-        $validOrderColumns = ['title', 'publish_date', 'description'];
-        if (in_array($orderColumn, $validOrderColumns)) {
-            $query->orderBy($orderColumn, $orderDir);
+        $columnMapping = [
+            'varIndex' => 'id',
+            'title' => 'title',
+            'thumbnail' => 'id',
+            'description' => 'description',
+            'publish_date' => 'publish_date',
+            'status_label' => 'status',
+            'action' => 'id'
+        ];
+        $dbColumn = $columnMapping[$orderColumn] ?? 'created_at';
+        $validOrderColumns = ['id', 'title', 'description', 'publish_date', 'status', 'created_at'];
+        if (in_array($dbColumn, $validOrderColumns)) {
+            $query->orderBy($dbColumn, $orderDir);
         } else {
             $query->latest();
         }
+        //Sử dụng pagination để phân trang dữ liệu tự động
+        $paginator = $query->paginate($perPage, ['*'], 'page', $page);
 
-        // Lấy dữ liệu theo trang
-        $posts = $query->offset($start)->limit($length)->get();
-
-        // Chuẩn bị data gửi về DataTables
-        $data = [];
-        foreach ($posts as $index => $post) {
-            $statusEnum = $post->status;
-
-            $statusHtml = '<span class="badge bg-' . $statusEnum->color() . '">' . $statusEnum->label() . '</span>';
-
-            $actionHtml = '<a href="' . route('posts.show', $post) . '" class="btn btn-info btn-sm">Show <i class="fas fa-eye"></i></a>';
-
-            if (Auth::user()->can('update', $post)) {
-                $actionHtml .= ' <a href="' . route('posts.edit', $post) . '" class="btn btn-warning btn-sm">Edit <i class="fas fa-edit"></i></a>';
-            }
-
-            if (Auth::user()->can('delete', $post)) {
-                $actionHtml .= '
-                    <form action="' . route('posts.destroy', $post) . '" method="POST" class="d-inline" onsubmit="return confirm(\'Bạn có chắc muốn xóa?\')">
-                        ' . csrf_field() . method_field('DELETE') . '
-                        <button type="submit" class="btn btn-danger btn-sm">Delete <i class="fas fa-trash-alt"></i></button>
-                    </form>';
-            }
-
-            $data[] = [
-                'varIndex' => $start + $index + 1,
-                'title' => $post->title,
-                'thumbnail' => $post->thumbnail,
-                'description' => $post->description,
-                'publish_date' => $post->publish_date ? $post->publish_date->format('d/m/Y') : '',
-                'status_label' => $statusHtml,
-                'action' => $actionHtml,
-            ];
+        $items = $paginator->items();
+        foreach ($items as $i => $item) {
+            $item->resourceIndex = $paginator->firstItem() + $i; // truyền index vào resource
         }
 
         return [
-            'draw' => intval($draw),
-            'recordsTotal' => $totalRecords,
-            'recordsFiltered' => $recordsFiltered,
-            'data' => $data,
+            'draw' => (int) ($filters['draw'] ?? 1),
+            'recordsTotal' => $paginator->total(),
+            'recordsFiltered' => $paginator->total(),
+            'data' => PostResource::collection(collect($items)),
         ];
+
+    }
+
+
+    public function create(array $data, $thumbnail = null)
+    {
+        DB::beginTransaction();
+        try {
+            $data['user_id'] = Auth::id();
+            $post = Post::create($data);
+
+            if ($thumbnail) {
+                $post->addMediaFromRequest('thumbnail')->toMediaCollection('thumbnails');
+            }
+
+            DB::commit();
+            return $post;
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    public function update(Post $post, array $data, $thumbnail = null)
+    {
+        DB::beginTransaction();
+        try {            
+            $post->update($data);
+
+            if ($thumbnail) {
+                $post->clearMediaCollection('thumbnails');
+                $post->addMediaFromRequest('thumbnail')->toMediaCollection('thumbnails');
+            }
+
+            DB::commit();
+            return $post->fresh();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    public function delete(Post $post)
+    {
+        return $post->delete();
+    }
+
+    public function deleteAll($userId)
+    {
+        return Post::ownedBy($userId)->delete();
     }
 }

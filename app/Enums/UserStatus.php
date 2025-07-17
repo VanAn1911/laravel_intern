@@ -11,10 +11,29 @@ enum UserStatus: int
     public function label(): string
     {
         return match($this) {
-            self::PENDING   => 'Chờ phê duyệt',
-            self::APPROVED  => 'Được phê duyệt',
-            self::REJECTED  => 'Bị từ chối',
-            self::BLOCKED   => 'Bị khoá',
+            self::PENDING => 'Chờ phê duyệt',
+            self::APPROVED => 'Đã phê duyệt',
+            self::REJECTED => 'Từ chối',
+            self::BLOCKED => 'Bị khóa',
         };
+    }
+
+    public function color(): string
+    {
+        return match($this) {
+            self::PENDING => 'secondary',
+            self::APPROVED => 'success',
+            self::REJECTED => 'danger',
+            self::BLOCKED => 'dark',
+        };
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'value' => $this->value,
+            'label' => $this->label(),
+            'color' => $this->color(),
+        ];
     }
 }

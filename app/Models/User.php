@@ -63,6 +63,11 @@ class User extends Authenticatable
         ];
     }
 
+    public function isAdmin()
+    {
+        return $this->role === 'admin'; // hoặc true/false tùy theo cách em phân quyền
+    }
+
     /**
      * Accessor for the name attribute.
      *

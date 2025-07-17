@@ -5,85 +5,102 @@ namespace App\Services;
 use App\Models\Post;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use App\Http\Resources\PostResource;
+use Illuminate\Support\Facades\DB;
 
 class AdminPostService
 {
-    public function getPosts($request)
-    {
-        $draw = $request->input('draw');
-        $start = $request->input('start', 0);
-        $length = $request->input('length', 10);
-        $query = Post::query();
+    
 
-        // Tìm kiếm theo title hoặc email user
-        $search = $request->input('search.value');
+    public function getPosts($filters)
+    {
+        $perPage = $filters['length'] ?? 10;
+        $page = isset($filters['start']) ? floor($filters['start'] / $perPage) + 1 : 1;
+        $search = $filters['search']['value'] ?? null;
+        $orderColumnIndex = $filters['order'][0]['column'] ?? 0;
+        $orderDir = $filters['order'][0]['dir'] ?? 'asc';
+        $orderColumn = $filters['columns'][$orderColumnIndex]['data'] ?? 'created_at';
+
+        $query = Post::query();       
+        $query->with('user');
+
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%$search%")
-                ->orWhereHas('user', function ($q2) use ($search) {
-                    $q2->where('email', 'like', "%$search%");
-                });
+                  ->orWhereHas('user', function ($q2) use ($search) {
+                      $q2->where('email', 'like', "%$search%");
+                  });
             });
         }
 
-        $totalRecords = Post::count();
-        $recordsFiltered = $query->count();
-
-        // Sắp xếp (ordering)
-        $orderColumnIndex = $request->input('order.0.column');
-        $orderDir = $request->input('order.0.dir', 'asc');
-        $orderColumn = $request->input("columns.$orderColumnIndex.data");
-        $validOrderColumns = ['title', 'publish_date', 'email', 'description'];
-        if (in_array($orderColumn, $validOrderColumns)) {
-            if ($orderColumn == 'email') {
-            $query->join('users', 'posts.user_id', '=', 'users.id')
-                  ->orderBy('users.email', $orderDir)
-                  ->select('posts.*');
+        // Map frontend column names to DB columns
+        $columnMapping = [
+            'varIndex' => 'id',
+            'title' => 'title',
+            'email' => 'email',
+            'thumbnail' => 'id',
+            'description' => 'description',
+            'publish_date' => 'publish_date',
+            'status' => 'status',
+            'created_at' => 'created_at',
+        ];
+         $orderBy = $columnMapping[$orderColumn] ?? 'created_at';
+         $validOrderColumns = ['title', 'publish_date', 'description', 'created_at', 'email'];
+        if (in_array($orderBy, $validOrderColumns)) {
+            if ($orderBy === 'email') {
+                $query->join('users', 'posts.user_id', '=', 'users.id')
+                      ->orderBy('users.email', $orderDir)
+                      ->select('posts.*');
             } else {
-                $query->orderBy($orderColumn, $orderDir);
+                $query->orderBy($orderBy, $orderDir);
             }
         } else {
             $query->latest();
         }
 
-        // Lấy dữ liệu theo trang
-        $posts = $query->offset($start)->limit($length)->get();
+        $paginator = $query->paginate($perPage, ['*'], 'page', $page);
 
-        // Chuẩn bị data gửi về DataTables
-        $data = [];        
-        foreach ($posts as $index => $post) {
-            $statusEnum = $post->status;
-            $statusHtml = '<span class="badge bg-' . $statusEnum->color() . '">' . $statusEnum->label() . '</span>';
-            $actionHtml = '<a href="' . route('posts.show', $post) . '" class="btn btn-info btn-sm">Show <i class="fas fa-eye"></i></a>';
-            if (Auth::user()->can('update', $post)) {
-                $actionHtml .= ' <a href="' . route('admin.posts.edit', $post) . '" class="btn btn-warning btn-sm">Edit <i class="fas fa-edit"></i></a>';
-            }
-
-            if (Auth::user()->can('delete', $post)) {
-                $actionHtml .= '
-                    <form action="' . route('admin.posts.destroy', $post) . '" method="POST" class="d-inline" onsubmit="return confirm(\'Bạn có chắc muốn xóa?\')">
-                        ' . csrf_field() . method_field('DELETE') . '
-                        <button type="submit" class="btn btn-danger btn-sm">Delete <i class="fas fa-trash-alt"></i></button>
-                    </form>';
-            }
-
-            $data[] = [
-                'varIndex' => $start + $index + 1,
-                'title' => $post->title,
-                'email' => $post->user->email,
-                'thumbnail' => $post->thumbnail,
-                'description' => $post->description,
-                'publish_date' => $post->publish_date ? $post->publish_date->format('d/m/Y') : '',
-                'status_label' => $statusHtml,
-                'action' => $actionHtml,
-            ];
+        $items = $paginator->items();
+        foreach ($items as $i => $item) {
+            $item->resourceIndex = $paginator->firstItem() + $i; // truyền index vào resource
         }
 
         return [
-            'draw' => intval($draw),
-            'recordsTotal' => $totalRecords,
-            'recordsFiltered' => $recordsFiltered,
-            'data' => $data,
+            'draw' => (int) ($filters['draw'] ?? 1),
+            'recordsTotal' => $paginator->total(),
+            'recordsFiltered' => $paginator->total(),
+            'data' => PostResource::collection(collect($items)),
         ];
+
+    }
+
+    public function update(Post $post, array $data, $thumbnail = null)
+    {
+        DB::beginTransaction();
+        try {            
+            $post->update($data);
+
+            if ($thumbnail) {
+                $post->clearMediaCollection('thumbnails');
+                $post->addMediaFromRequest('thumbnail')->toMediaCollection('thumbnails');
+            }
+
+            DB::commit();
+            return $post->fresh();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+     public function delete(Post $post)
+    {
+        return $post->delete();
+    }
+
+
+    public function deleteAll($userId)
+    {
+        return Post::ownedBy($userId)->delete();
     }
 }

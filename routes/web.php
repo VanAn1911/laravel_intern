@@ -11,8 +11,8 @@ use App\Http\Controllers\Auth\ResetPasswordController;
 use Mews\Purifier\Facades\Purifier;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\NewsController;
-use App\Http\Controllers\Admin\AdminController;
-use App\Http\Controllers\Admin\AdminPostController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\PostController as AdminPostController;
 use App\Http\Controllers\Admin\UserController;
 
 //Tự đông đăng ký các route xác thực
@@ -48,19 +48,27 @@ use App\Http\Controllers\Admin\UserController;
     //Route::get('/posts', function () {return view('posts.index');})->name('posts.index'); 
     Route::get('/posts/data', [PostController::class, 'data'])->name('posts.data'); //dùng để lấy dữ liệu cho DataTables
     Route::resource('posts', PostController::class); //đặt tên tham số là post thay vì posts
-    Route::delete('posts-delete-all', [PostController::class, 'destroyAll'])->name('posts.destroyAll');
+    Route::delete('/posts/delete-all', [PostController::class, 'destroyAll'])->name('posts.destroyAll');
     
     // Câp nhật thông tin cá nhân
     Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+
+    
   });
 
   Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/', [AdminController::class, 'index'])->name('dashboard');
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/posts/data', [AdminPostController::class, 'data'])->name('posts.data');
     Route::resource('posts', AdminPostController::class);
+    Route::get('/users/data', [UserController::class, 'data'])->name('users.data');
+    Route::post('users/{user}/lock', [UserController::class, 'lock'])->name('users.lock');
     Route::resource('users', UserController::class);
   });
+
+  Route::get('/test-lazy', [\App\Http\Controllers\TestController::class, 'lazy']);
+  Route::get('/test-eager', [\App\Http\Controllers\TestController::class, 'eager']);
+
 // Route::get('/send-email', function () {
 //     $email_message = 'Kiểm tra gửi Mail từ Laravel!';
 //     Mail::to('recipient@example.com')->send(new SendEmail($email_message));
@@ -105,16 +113,16 @@ use App\Http\Controllers\Admin\UserController;
 // });
 
 //Truyền dữ liệu vào view
-Route::get('/demo', function (Request $request) {
-    $safeTitle = Purifier::clean($request->query('title'));//sử dụng Purifier để làm sạch dữ liệu đầu vào
-    $name = "An";
-    $users = [
-            (object)['name' => 'An'],
-            (object)['name' => 'Bình'],
-            (object)['name' => 'Chi'],
-        ];
-    return view('example', compact('name', 'users', 'safeTitle'));
-})->name('demo');
+// Route::get('/demo', function (Request $request) {
+//     $safeTitle = Purifier::clean($request->query('title'));//sử dụng Purifier để làm sạch dữ liệu đầu vào
+//     $name = "An";
+//     $users = [
+//             (object)['name' => 'An'],
+//             (object)['name' => 'Bình'],
+//             (object)['name' => 'Chi'],
+//         ];
+//     return view('example', compact('name', 'users', 'safeTitle'));
+// })->name('demo');
 
 
 
