@@ -319,6 +319,7 @@ return [
             'text' => 'Bài viết',
             'route' => 'posts.index',
             'icon' => 'fas fa-file-alt',
+            'can' => 'is_user',
         ],
         [
             'text' => 'Cập nhật hồ sơ',

@@ -56,4 +56,13 @@ class Post extends Model implements HasMedia
         static::observe(PostObserver::class);
     }
 
+    public function likes()
+    {
+        return $this->morphMany(Like::class, 'likeable');
+    }
+
+    public function comments()
+    {
+        return $this->morphMany(Comment::class, 'commentable');
+    }
 }

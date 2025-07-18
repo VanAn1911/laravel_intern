@@ -3,14 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
-use App\Http\Requests\StorePostRequest;
-use App\Http\Requests\AdminUpdatePostRequest;
+use App\Http\Requests\Admin\UpdatePostRequest;
 use App\Models\Post;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str; 
 use App\Http\Controllers\Controller;
 use App\Services\AdminPostService;
-use App\Jobs\SendStatusUpdatedMail;
+
 
 
 class PostController extends Controller
@@ -23,6 +22,9 @@ class PostController extends Controller
     }
     public function index(Request $request)
     {       
+        if ($request->ajax()) {
+            return response()->json($this->adminPostService->getPosts($request));
+        }
         return view('admin.posts.index');
     }
 
@@ -48,7 +50,7 @@ class PostController extends Controller
     }
 
     // Cập nhật bài viết
-    public function update(AdminUpdatePostRequest $request, Post $post)
+    public function update(UpdatePostRequest $request, Post $post)
     {
         $this->authorize('update', $post);
         
@@ -85,10 +87,5 @@ class PostController extends Controller
     {
         $this->adminPostService->deleteAll(Auth::id());
         return response()->json(['success' => true]);
-    }
-
-    public function data(Request $request)
-    {
-        return response()->json(app(AdminPostService::class)->getPosts($request));
     }
 }

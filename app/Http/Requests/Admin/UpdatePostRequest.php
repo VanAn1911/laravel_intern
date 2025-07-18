@@ -1,11 +1,13 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 use App\Enums\PostStatus;
 use Illuminate\Validation\Rules\Enum;
-class StorePostRequest extends FormRequest
+
+
+class UpdatePostRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,14 +24,17 @@ class StorePostRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        $rules = [
             'title' => 'required|max:100',
             'description' => 'required|max:200',
             'content' => 'required',
             'publish_date' => 'required|date',
-            'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            //'status' => ['required', new Enum(PostStatus::class)],
+            'thumbnail' => ['nullable|image|mimes:jpg,jpeg,png,webp|max:2048'],
+            'status'     => ['required', new Enum(PostStatus::class)],
         ];
+
+
+        return $rules;
     }
 
     public function messages(): array

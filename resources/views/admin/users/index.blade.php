@@ -39,13 +39,17 @@
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '{{ route('admin.users.data') }}',
+                    url: '{{ route('admin.users.index') }}',
                     type: 'GET'
                 },
                 pageLength: 5,
                 lengthMenu: [[5, 10, 25], [5, 10, 25]],
                 columns: [
-                    { data: 'resourceIndex', name: 'varIndex', orderable: true, searchable: false },
+                    { data: null,name: 'stt',orderable: false,searchable: false,
+                        render: function (data, type, row, meta) {
+                            return meta.row + 1;
+                        }
+                    },
                     { data: 'name', name: 'name', orderable: true, searchable: true },
                     { data: 'email', name: 'email', orderable: true, searchable: true },
                     { data: 'address', name: 'address', orderable: true, searchable: true,

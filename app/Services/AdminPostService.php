@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use App\Http\Resources\PostResource;
 use Illuminate\Support\Facades\DB;
+use App\Jobs\SendDynamicMailJob;
 
 class AdminPostService
 {
@@ -35,9 +36,8 @@ class AdminPostService
 
         // Map frontend column names to DB columns
         $columnMapping = [
-            'varIndex' => 'id',
             'title' => 'title',
-            'email' => 'email',
+            'user' => 'user',
             'thumbnail' => 'id',
             'description' => 'description',
             'publish_date' => 'publish_date',
@@ -61,9 +61,6 @@ class AdminPostService
         $paginator = $query->paginate($perPage, ['*'], 'page', $page);
 
         $items = $paginator->items();
-        foreach ($items as $i => $item) {
-            $item->resourceIndex = $paginator->firstItem() + $i; // truyền index vào resource
-        }
 
         return [
             'draw' => (int) ($filters['draw'] ?? 1),
@@ -77,7 +74,8 @@ class AdminPostService
     public function update(Post $post, array $data, $thumbnail = null)
     {
         DB::beginTransaction();
-        try {            
+        try {
+            $oldStatus = $post->status;            
             $post->update($data);
 
             if ($thumbnail) {
@@ -86,6 +84,11 @@ class AdminPostService
             }
 
             DB::commit();
+
+            if ($oldStatus !== $post->status) {
+                $post = $post->fresh(['user']);//reload user relationship
+                SendDynamicMailJob::dispatch('status', ['post' => $post]);
+            }
             return $post->fresh();
         } catch (\Throwable $e) {
             DB::rollBack();

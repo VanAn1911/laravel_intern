@@ -90,7 +90,7 @@ $(document).ready(function () {
         serverSide: true,
         processing: true,
         ajax: {
-            url: '/posts/data',
+            url: {{ route('posts.index') }},
             dataSrc: function(json) {
                 return json.data;
             }
@@ -98,10 +98,15 @@ $(document).ready(function () {
         pageLength: 5,
         lengthMenu: [[5, 10, 25], [5, 10, 25]],
         columns: [
-            { data: 'varIndex', name: 'varIndex', orderable: false, searchable: false },
+            { data: null,name: 'stt',orderable: false,searchable: false,
+                    render: function (data, type, row, meta) {
+                        return meta.row + 1;
+                    }
+                },
             { data: 'title', name: 'title',
                 render: function (data, type, row) {
                     const maxLength = 20;
+                    if (typeof data !== 'string') return '';
                     return data.length > maxLength
                         ? `<span title="${data}">${data.substring(0, maxLength)}...</span>`
                         : data;
@@ -115,6 +120,7 @@ $(document).ready(function () {
             { data: 'description', name: 'description',
                 render: function (data, type, row) {
                     const maxLength = 20;
+                    if (typeof data !== 'string') return '';
                     return data.length > maxLength
                         ? `<span title="${data}">${data.substring(0, maxLength)}...</span>`
                         : data;
@@ -133,7 +139,7 @@ $(document).ready(function () {
                     let del = `<button class="btn btn-danger btn-sm btn-delete" data-id="${id}">Delete <i class="fas fa-trash-alt"></i></button>`;
                     return show + ' ' + edit + ' ' + del;
                 }
-            }
+            },
         ]
     });
 

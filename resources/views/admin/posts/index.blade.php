@@ -58,7 +58,7 @@
             serverSide: true,
             processing: true,
             ajax: {
-                url: '{{ route("admin.posts.data") }}',
+                url: '{{ route("admin.posts.index") }}',
                 dataSrc: function (json) {
                     console.log("DataTables response:", json);
                     return json.data;
@@ -70,7 +70,12 @@
             pageLength: 5,
             lengthMenu: [[5, 10, 25], [5, 10, 25]],
             columns: [
-                {data: "varIndex",name: "varIndex",orderable: true,searchable: false,},
+                { data: null,name: 'stt',orderable: false,searchable: false,
+                    render: function (data, type, row, meta) {
+                        return meta.row + 1;
+                    }
+                },
+
                 { data: "title", name: "title", orderable: true, searchable: true,
                     render: function (data, type, row) {
                         const maxLength = 20;
@@ -80,7 +85,7 @@
                             : data;
                     }
                  },
-                { data: "email", name: "email", orderable: true, searchable: true },
+                { data: "user.email", name: "user.email", orderable: true, searchable: true },
                 {
                     data: "thumbnail",
                     name: "thumbnail",

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule; 
@@ -29,6 +29,7 @@ class UpdateProfileRequest extends FormRequest
             'first_name' => ['required', 'string', 'max:255'],
             'last_name'  => ['required', 'string', 'max:255'],
             'address'    => ['nullable', 'string', 'max:255'],
+            'status'     => ['required', new Enum(UserStatus::class)],
         ];
 
         return $rules;

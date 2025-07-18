@@ -30,7 +30,6 @@ class PostService
         }
 
         $columnMapping = [
-            'varIndex' => 'id',
             'title' => 'title',
             'thumbnail' => 'id',
             'description' => 'description',
@@ -39,7 +38,7 @@ class PostService
             'action' => 'id'
         ];
         $dbColumn = $columnMapping[$orderColumn] ?? 'created_at';
-        $validOrderColumns = ['id', 'title', 'description', 'publish_date', 'status', 'created_at'];
+        $validOrderColumns = ['title', 'description', 'publish_date'];
         if (in_array($dbColumn, $validOrderColumns)) {
             $query->orderBy($dbColumn, $orderDir);
         } else {
@@ -49,9 +48,6 @@ class PostService
         $paginator = $query->paginate($perPage, ['*'], 'page', $page);
 
         $items = $paginator->items();
-        foreach ($items as $i => $item) {
-            $item->resourceIndex = $paginator->firstItem() + $i; // truyền index vào resource
-        }
 
         return [
             'draw' => (int) ($filters['draw'] ?? 1),

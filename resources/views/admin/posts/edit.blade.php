@@ -70,10 +70,21 @@
 </div>
 @endsection
 
-@push('scripts')
+@push('js')
 <script>
     $(document).ready(function() {
-        $('.summernote').summernote();
+        $('.summernote').summernote({
+            height: 300,  // Chiều cao khung nhập
+            toolbar: [
+                ['style', ['bold', 'italic', 'underline', 'clear']],
+                ['font', ['strikethrough', 'superscript', 'subscript']],
+                ['fontsize', ['fontsize']],
+                ['color', ['color']],
+                ['para', ['ul', 'ol', 'paragraph']],
+                ['insert', ['link', 'picture', 'video']],
+                ['view', ['fullscreen', 'codeview', 'help']]
+            ]
+        });
     });
 </script>
 @endpush

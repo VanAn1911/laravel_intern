@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\User;
 
 use Illuminate\Foundation\Http\FormRequest;
 use App\Enums\PostStatus;
@@ -29,19 +29,8 @@ class UpdatePostRequest extends FormRequest
             'description' => 'required|max:200',
             'content' => 'required',
             'publish_date' => 'required|date',
-            'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'thumbnail' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ];
-    //     \Log::info('Request method: ' . $this->method());
-    // \Log::info('Request URL: ' . $this->url());
-    // \Log::info('Request data: ' . json_encode($this->all()));
-    // \Log::info('Auth check: ' . (auth()->check() ? 'Authenticated' : 'Not authenticated'));
-    // \Log::info('User: ' . (auth()->user() ? auth()->user()->toJson() : 'No user'));
-    // \Log::info('Is admin: ' . (auth()->check() && auth()->user()->isAdmin() ? 'true' : 'false'));
-        // Chỉ thêm rule cho status nếu user là admin
-        if (auth()->check() && auth()->user()->isAdmin()) {
-            $rules['status'] = ['required', new Enum(PostStatus::class)];
-        }
-
         return $rules;
     }
 

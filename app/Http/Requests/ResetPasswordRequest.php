@@ -25,15 +25,15 @@ class ResetPasswordRequest extends FormRequest
             'token'    => 'required',
             'email'    => 'required|email',
             'password' => [
-            'required',
-            'string',
-            'confirmed',
-            Password::min(8)
-                ->mixedCase() // cả hoa và thường
-                ->letters()   // có chữ cái
-                ->numbers()   // có số
-                ->symbols(),  // có ký tự đặc biệt
-             ],
+                'required',
+                'string',
+                'confirmed',
+                Password::min(8)
+                    ->mixedCase() // cả hoa và thường
+                    ->letters()   // có chữ cái
+                    ->numbers()   // có số
+                    ->symbols(),  // có ký tự đặc biệt
+                ],
         ];
     }
 

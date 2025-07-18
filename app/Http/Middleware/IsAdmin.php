@@ -9,7 +9,7 @@ class IsAdmin
 {
     public function handle($request, Closure $next)
     {
-        if (auth()->check() && auth()->user()->role === RoleEnum::ADMIN) {
+        if (auth()->user()->role === RoleEnum::ADMIN) {
             return $next($request);
         }
 

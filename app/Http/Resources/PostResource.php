@@ -15,11 +15,11 @@ class PostResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'varIndex' => $this->resourceIndex, // truyền từ ngoài vào
             'id' => $this->id,
             'title' => $this->title,
-            'email' => $this->user->email,
-            'thumbnail' => $this->getThumbnailAttribute('thumbnails'),
+            // Tránh lỗi nếu user chưa load hoặc bị null
+            'user' => $this->whenLoaded('user', fn () => $this->user),
+            'thumbnail' => $this->thumbnail,
             'description' => $this->description,
             'publish_date' => $this->publish_date?->format('d/m/Y') ?? '',
             'status' => $this->status->toArray(),

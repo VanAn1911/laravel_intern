@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Enums\UserStatus;
-use App\Jobs\SendWelcomeEmail;
+use App\Jobs\SendDynamicMailJob;
 
 
 class RegisterController extends Controller
@@ -30,7 +30,8 @@ class RegisterController extends Controller
     public function register(RegisterRequest $request)
     {
         $user = $this->create($request->validated());
-        SendWelcomeEmail::dispatch($user);
+        //SendWelcomeEmail::dispatch($user);
+        SendDynamicMailJob::dispatch('welcome', ['user' => $user]);
         return to_route('login')->with('success', 'Đăng ký tài khoản thành công!');
     }
 

@@ -1,13 +1,11 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\User;
 
 use Illuminate\Foundation\Http\FormRequest;
 use App\Enums\PostStatus;
 use Illuminate\Validation\Rules\Enum;
-
-
-class AdminUpdatePostRequest extends FormRequest
+class StorePostRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,17 +22,13 @@ class AdminUpdatePostRequest extends FormRequest
      */
     public function rules(): array
     {
-        $rules = [
+        return [
             'title' => 'required|max:100',
             'description' => 'required|max:200',
             'content' => 'required',
             'publish_date' => 'required|date',
-            'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'status'     => ['required', new Enum(PostStatus::class)],
+            'thumbnail' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ];
-
-
-        return $rules;
     }
 
     public function messages(): array
@@ -50,7 +44,6 @@ class AdminUpdatePostRequest extends FormRequest
             'thumbnail.image' => 'Ảnh đại diện phải là một hình ảnh',
             'thumbnail.mimes' => 'Ảnh đại diện phải có định dạng jpg, jpeg, png, webp',
             'thumbnail.max' => 'Ảnh đại diện không được quá 2MB',
-            'status.required' => 'Trạng thái không được để trống',
         ];
     }
 }

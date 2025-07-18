@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Http\Controllers\Controller;
 use App\Services\AdminUserService;
-use App\Http\Requests\AdminUpdateProfileRequest;
+use App\Http\Requests\Admin\UpdateProfileRequest;
 
 class UserController extends Controller
 {
@@ -16,15 +16,12 @@ class UserController extends Controller
         $this->userService = $userService;
     }
 
-    // DataTables AJAX
-    public function data(Request $request)
-    {
-        return response()->json($this->userService->getUsers($request->all()));
-    }
-
     // Hiển thị danh sách người dùng
-    public function index()
+    public function index(Request $request)
     {
+        if ($request->ajax()) {
+            return response()->json($this->userService->getUsers($request->all()));
+        }
         return view('admin.users.index');
     }
 
@@ -38,7 +35,7 @@ class UserController extends Controller
         return view('admin.users.edit', compact('user'));
     }
 
-    public function update(AdminUpdateProfileRequest $request, User $user)
+    public function update(UpdateProfileRequest $request, User $user)
     {
         $data = $request->validated();
         $user = $this->userService->updateUser($user, $data);

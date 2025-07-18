@@ -30,7 +30,6 @@ class AdminUserService
         }
 
         $columnMapping = [
-            'varIndex' => 'id',
             'name' => 'first_name',
             'email' => 'email',
             'address' => 'address',
@@ -45,12 +44,9 @@ class AdminUserService
             $query->latest();
         }
 
-        $paginator = $query->paginate($perPage, ['*'], 'page', $page);
+        $paginator = $query->paginate($perPage, ['*'], 'page', $page);//truyền length thôi
 
         $items = $paginator->items();
-        foreach ($items as $i => $item) {
-            $item->resourceIndex = $paginator->firstItem() + $i;
-        }
 
         return [
             'draw' => (int) ($filters['draw'] ?? 1),

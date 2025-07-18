@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StorePostRequest;
-use App\Http\Requests\UpdatePostRequest;
+use App\Http\Requests\User\StorePostRequest;
+use App\Http\Requests\User\UpdatePostRequest;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,6 +20,9 @@ class PostController extends Controller
 
     public function index(Request $request)
     {
+        if ($request->ajax()) {
+            return response()->json($this->postService->getPosts($request->all()));
+        }
         return view('posts.index');
     }
 
@@ -81,10 +84,5 @@ class PostController extends Controller
     {
         $this->postService->deleteAll(Auth::id());
         return response()->json(['success' => true]);
-    }
-
-    public function data(Request $request)
-    {
-        return response()->json($this->postService->getPosts($request->all()));
     }
 }

@@ -43,25 +43,26 @@ use App\Http\Controllers\Admin\UserController;
     Route::post('/password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
   }); 
 
-  Route::middleware(['auth', 'check.status'])->group(function () {
-    // Quản lý bài viết
-    //Route::get('/posts', function () {return view('posts.index');})->name('posts.index'); 
-    Route::get('/posts/data', [PostController::class, 'data'])->name('posts.data'); //dùng để lấy dữ liệu cho DataTables
-    Route::resource('posts', PostController::class); //đặt tên tham số là post thay vì posts
-    Route::delete('/posts/delete-all', [PostController::class, 'destroyAll'])->name('posts.destroyAll');
-    
+  Route::middleware(['auth', 'check.status'])->group(function () {    
     // Câp nhật thông tin cá nhân
     Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
-    Route::post('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
-
-    
+    Route::post('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');  
   });
 
+  //User routes
+  Route::middleware(['auth', 'check.status', 'is_user'])->group(function () {
+    // Quản lý bài viết
+    //Route::get('/posts/data', [PostController::class, 'data'])->name('posts.data'); //dùng để lấy dữ liệu cho DataTables
+    Route::resource('posts', PostController::class); //đặt tên tham số là post thay vì posts
+    Route::delete('/posts/delete-all', [PostController::class, 'destroyAll'])->name('posts.destroyAll');    
+  });
+
+  //Admin routes
   Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/posts/data', [AdminPostController::class, 'data'])->name('posts.data');
+    //Route::get('/posts/data', [AdminPostController::class, 'data'])->name('posts.data');
     Route::resource('posts', AdminPostController::class);
-    Route::get('/users/data', [UserController::class, 'data'])->name('users.data');
+    //Route::get('/users/data', [UserController::class, 'data'])->name('users.data');
     Route::post('users/{user}/lock', [UserController::class, 'lock'])->name('users.lock');
     Route::resource('users', UserController::class);
   });
