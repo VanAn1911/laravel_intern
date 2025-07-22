@@ -10,7 +10,7 @@ class StatusUpdatedMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $post;
+    protected $post;
 
     public function __construct(Post $post)
     {
@@ -19,7 +19,8 @@ class StatusUpdatedMail extends Mailable
 
     public function build()
     {
-        return $this->subject('Trạng thái bài viết đã được cập nhật')
-                    ->view('emails.status-updated');
+        return $this->subject('Post Status Updated')
+                    ->view('emails.status_updated')
+                    ->with(['post' => $this->post]);
     }
 }

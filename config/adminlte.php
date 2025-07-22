@@ -299,6 +299,12 @@ return [
 
     'menu' => [
         [
+        'text' => 'Dashboard',
+        'route' => 'admin.dashboard',
+        'icon' => 'fas fa-file-alt',
+        'can' => 'is_admin',
+        ],
+        [
         'text' => 'Quản lý bài viết',
         'route' => 'admin.posts.index',
         'icon' => 'fas fa-file-alt',

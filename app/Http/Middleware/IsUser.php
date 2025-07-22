@@ -5,6 +5,8 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use App\Enums\RoleEnum;
+
 
 class IsUser
 {
@@ -15,7 +17,7 @@ class IsUser
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (auth()->user()->role === 'user') {
+        if (auth()->user()->role === RoleEnum::USER) {
             return $next($request);
         }
 

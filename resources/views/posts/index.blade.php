@@ -2,9 +2,7 @@
 
 @section('content')
 <div class="container">
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
+    <x-alert />
 
     <h1>Danh sách bài viết</h1>
     <a href="{{ route('posts.create') }}" class="btn btn-primary mb-2">Tạo mới bài viết</a>
@@ -13,85 +11,49 @@
         @method('DELETE')
         <button type="submit" class="btn btn-danger mb-2">Xóa tất cả</button>
     </form>
-    <table id="posts-table" class="table table-bordered text-center">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Tiêu đề</th>
-                <th>Hình ảnh</th>
-                <th>Mô tả</th>
-                <th>Ngày đăng</th>
-                <th>Trạng thái</th>
-                <th>Hành động</th>
-            </tr>
-        </thead>
-        <tbody>        
-        </tbody>
-    </table>
+    <form id="filter-form" class="row mb-3 align-items-end">
+        <x-form.input name="title" label="Tiêu đề" class="col-md-3" />
+        <x-form.input name="description" label="Mô tả" class="col-md-3" />
+        <x-form.enum-select name="status" label="Trạng thái" enumClass="\App\Enums\PostStatus" :includeAllOption="true"  class="col-md-3" />
+
+        <div class="col-md-3 row mb-3">
+            <button type="submit" class="btn btn-primary w-100 form-control">Tìm kiếm</button>
+        </div>
+    </form>
+    <x-table id="posts-table" :headers="['#', 'Tiêu đề', 'Hình ảnh', 'Mô tả', 'Ngày đăng', 'Trạng thái', 'Hành động']">
+        <tbody></tbody>
+    </x-table>
 </div>
 @endsection
 
 @push('js')
-{{-- <script src="{{ asset('js/post-datatable.js') }}"></script> --}}
 <script>
-// AJAX Scripts cho delete và deleteAll không reload trang
-
-// CSRF token setup
 $.ajaxSetup({
     headers: {
         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
     }
 });
 
-// Delete all posts
-function deleteAllPosts() {
-    if (confirm('Bạn có chắc chắn muốn xóa tất cả?')) {
-        $.ajax({
-            url: '{{ route("posts.destroyAll") }}',
-            type: 'POST',
-            data: { 
-                method: 'DELETE', 
-                _token: '{{ csrf_token() }}' 
-            },
-            success: function(response) {
-                if (response.success) {
-                    // Reload DataTable hoặc trang
-                    if (typeof table !== 'undefined') {
-                        table.ajax.reload();
-                    } else {
-                        location.reload();
-                    }
-                    
-                    // Hiển thị thông báo thành công
-                    if (typeof toastr !== 'undefined') {
-                        toastr.success('Xóa tất cả bài viết thành công!');
-                    } else {
-                        alert('Xóa tất cả bài viết thành công!');
-                    }
-                }
-            },
-            error: function(xhr) {
-                console.error('Lỗi khi xóa tất cả bài viết:', xhr);
-                if (typeof toastr !== 'undefined') {
-                    toastr.error('Có lỗi xảy ra khi xóa tất cả bài viết!');
-                } else {
-                    alert('Có lỗi xảy ra khi xóa tất cả bài viết!');
-                }
-            }
-        });
-    }
-}
-
 $(document).ready(function () {
     if ($.fn.DataTable.isDataTable('#posts-table')) {
         $('#posts-table').DataTable().destroy();
     }
-    $('#posts-table').DataTable({
+
+    const showUrl = "{{ route('posts.show', ['post' => 'ID_PLACEHOLDER']) }}";
+    const editUrl = "{{ route('posts.edit', ['post' => 'ID_PLACEHOLDER']) }}";
+    const deleteUrl = "{{ route('posts.destroy', ['post' => 'ID_PLACEHOLDER']) }}";
+    var table = $('#posts-table').DataTable({
         serverSide: true,
         processing: true,
         ajax: {
-            url: {{ route('posts.index') }},
-            dataSrc: function(json) {
+            url: @json(route('posts.index')),
+            data: function (d) {
+                // Lấy dữ liệu từ form filter
+                d.title = $('#filter-form input[name="title"]').val();
+                d.description = $('#filter-form input[name="description"]').val();
+                d.status = $('#filter-form select[name="status"]').val();
+            },
+            dataSrc: function (json) {
                 return json.data;
             }
         },
@@ -134,8 +96,8 @@ $(document).ready(function () {
             },
             { data: 'id', name: 'action', orderable: false, searchable: false,
                 render: function (id, type, row) {
-                    let show = `<a href="/posts/${id}" class="btn btn-info btn-sm">Show <i class="fas fa-eye"></i></a>`;
-                    let edit = `<a href="/posts/${id}/edit" class="btn btn-warning btn-sm">Edit <i class="fas fa-edit"></i></a>`;
+                    let show = `<a href="${showUrl.replace('ID_PLACEHOLDER', id)}" class="btn btn-info btn-sm">Show <i class="fas fa-eye"></i></a>`;
+                    let edit = `<a href="${editUrl.replace('ID_PLACEHOLDER', id)}" class="btn btn-warning btn-sm">Edit <i class="fas fa-edit"></i></a>`;
                     let del = `<button class="btn btn-danger btn-sm btn-delete" data-id="${id}">Delete <i class="fas fa-trash-alt"></i></button>`;
                     return show + ' ' + edit + ' ' + del;
                 }
@@ -147,7 +109,7 @@ $(document).ready(function () {
         let id = $(this).data('id');
         if(confirm('Bạn có chắc muốn xóa?')) {
             $.ajax({
-                url: '/posts/' + id,
+                url: deleteUrl.replace('ID_PLACEHOLDER', id),
                 type: 'DELETE',
                 data: {_token: $('meta[name="csrf-token"]').attr('content')},
                 success: function(res) {
@@ -162,7 +124,7 @@ $(document).ready(function () {
     $(document).on('click', '.btn-delete-all', function() {
         if(confirm('Bạn có chắc chắn muốn xóa tất cả bài viết?')) {
             $.ajax({
-                url: '/posts/delete-all',
+                url: @json(route('posts.destroyAll')),
                 type: 'DELETE',
                 data: {
                     _token: $('meta[name="csrf-token"]').attr('content')
@@ -174,6 +136,11 @@ $(document).ready(function () {
                 },
             });
         }
+    });
+
+    $('#filter-form').on('submit', function(e) {
+        e.preventDefault();
+        table.ajax.reload();
     });
 });
 </script>

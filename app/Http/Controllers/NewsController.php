@@ -3,6 +3,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use App\Enums\PostStatus;
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 
 
 class NewsController extends Controller
@@ -29,4 +31,34 @@ class NewsController extends Controller
 
         return view('news.show', compact('post'));
     }
+
+    // app/Http/Controllers/NewsController.php
+    public function like(Post $post)
+    {
+        $post->likes()->updateOrCreate(
+            ['user_id' => auth()->id()],
+            ['is_like' => true]
+        );
+        return back();
+    }
+
+    public function dislike(Post $post)
+    {
+        $post->likes()->updateOrCreate(
+            ['user_id' => auth()->id()],
+            ['is_like' => false]
+        );
+        return back();
+    }
+
+    public function comment(Request $request, Post $post)
+    {
+        $request->validate(['content' => 'required|string']);
+        $post->comments()->create([
+            'user_id' => auth()->id(),
+            'content' => $request->content,
+        ]);
+        return back();
+    }
+
 }

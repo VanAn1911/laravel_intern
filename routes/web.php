@@ -46,7 +46,12 @@ use App\Http\Controllers\Admin\UserController;
   Route::middleware(['auth', 'check.status'])->group(function () {    
     // Câp nhật thông tin cá nhân
     Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
-    Route::post('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');  
+    Route::post('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update'); 
+
+    //Like, Dislike, Comment on News
+    Route::post('/news/{post:slug}/like', [NewsController::class, 'like'])->name('news.like');
+    Route::post('/news/{post:slug}/dislike', [NewsController::class, 'dislike'])->name('news.dislike');
+    Route::post('/news/{post:slug}/comment', [NewsController::class, 'comment'])->name('news.comment');
   });
 
   //User routes
@@ -59,7 +64,7 @@ use App\Http\Controllers\Admin\UserController;
 
   //Admin routes
   Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     //Route::get('/posts/data', [AdminPostController::class, 'data'])->name('posts.data');
     Route::resource('posts', AdminPostController::class);
     //Route::get('/users/data', [UserController::class, 'data'])->name('users.data');

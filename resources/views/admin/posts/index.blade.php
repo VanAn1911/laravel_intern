@@ -2,46 +2,32 @@
 
 @section('content')
 <div class="container">
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
+    <x-alert />
     <h2>Quản lý bài viết</h2>
+    <a href="{{ route('admin.posts.create') }}" class="btn btn-primary mb-2">Tạo mới bài viết</a>
     <form action="{{ route('posts.destroyAll') }}" method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn xóa tất cả?')">
         @csrf
         @method('DELETE')
         <button type="submit" class="btn btn-danger mb-2">Xóa tất cả</button>
     </form>
-    <table id="admin-posts-table" class="table table-bordered text-center">
-        {{-- <colgroup>
-            <col style="width: 5%">
-            <col style="width: 20%">
-            <col style="width: 10%">
-            <col style="width: 25%">
-            <col style="width: 10%">
-            <col style="width: 10%">
-            <col style="width: 20%">
-        </colgroup> --}}
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Tiêu đề</th>
-                <th>Email</th>
-                <th>Hình ảnh</th>
-                <th>Mô tả</th>
-                <th>Ngày đăng</th>
-                <th>Trạng thái</th>
-                <th>Hành động</th>
-            </tr>
-        </thead>
-        <tbody>
-        
-        </tbody>
-    </table>
+    <form id="filter-form" class="row mb-3 align-items-end">
+        <x-form.input name="title" label="Tiêu đề" class="col-md-3" />
+        <x-form.input name="email" label="Email" class="col-md-3" />
+        <x-form.enum-select name="status" label="Trạng thái" enumClass="\App\Enums\PostStatus" :includeAllOption="true" class="col-md-3" />
+
+        <div class="col-md-3 row mb-3">
+            <button type="submit" class="btn btn-primary w-100 form-control">Tìm kiếm</button>
+        </div>
+    </form>
+
+    <x-table id="admin-posts-table" :headers="['#', 'Tiêu đề', 'Email', 'Hình ảnh', 'Mô tả', 'Ngày đăng', 'Trạng thái', 'Hành động']">
+        <tbody></tbody>
+    </x-table>
+
 </div>
 @endsection
 
 @push('js')
-{{-- <script src="{{ asset('js/admin-post-datatable.js') }}"></script> --}}
 <script>
     $.ajaxSetup({
         headers: {
@@ -54,11 +40,20 @@
             $("#admin-posts-table").DataTable().destroy();
         }
 
-        $("#admin-posts-table").DataTable({
+        const showUrl = "{{ route('admin.posts.show', ['post' => 'ID_PLACEHOLDER']) }}";
+        const editUrl = "{{ route('admin.posts.edit', ['post' => 'ID_PLACEHOLDER']) }}";
+        const deleteUrl = "{{ route('admin.posts.destroy', ['post' => 'ID_PLACEHOLDER']) }}";
+        var table = $("#admin-posts-table").DataTable({
             serverSide: true,
             processing: true,
             ajax: {
-                url: '{{ route("admin.posts.index") }}',
+                url: @json(route('admin.posts.index')),
+                data: function (d) {
+                    // Lấy dữ liệu từ form filter
+                    d.title = $('#filter-form input[name="title"]').val();
+                    d.email = $('#filter-form input[name="email"]').val();
+                    d.status = $('#filter-form select[name="status"]').val();
+                },
                 dataSrc: function (json) {
                     console.log("DataTables response:", json);
                     return json.data;
@@ -110,11 +105,13 @@
                 },
                 { data: 'id', name: 'action', orderable: false, searchable: false,
                     render: function (id, type, row) {
-                        let show = `<a href="/admin/posts/${id}" class="btn btn-info btn-sm">Show <i class="fas fa-eye"></i></a>`;
-                        let edit = `<a href="/admin/posts/${id}/edit" class="btn btn-warning btn-sm">Edit <i class="fas fa-edit"></i></a>`;
+                        let show = `<a href="${showUrl.replace('ID_PLACEHOLDER', id)}" class="btn btn-info btn-sm">Show <i class="fas fa-eye"></i></a>`;
+                        let edit = `<a href="${editUrl.replace('ID_PLACEHOLDER', id)}" class="btn btn-warning btn-sm">Edit <i class="fas fa-edit"></i></a>`;
                         let del = `<button class="btn btn-danger btn-sm btn-delete" data-id="${id}">Delete <i class="fas fa-trash-alt"></i></button>`;
+
                         return show + ' ' + edit + ' ' + del;
                     }
+
                 }
             ],
         });
@@ -123,13 +120,16 @@
         let id = $(this).data('id');
         if(confirm('Bạn có chắc muốn xóa?')) {
             $.ajax({
-                url: '/posts/' + id,
+                url: deleteUrl.replace('ID_PLACEHOLDER', id),
                 type: 'DELETE',
                 data: {_token: $('meta[name="csrf-token"]').attr('content')},
                 success: function(res) {
                     if(res.success) {
-                        $('#posts-table').DataTable().ajax.reload(null, false);
-                    }
+                        alert(res.message || 'Xóa bài viết thành công');
+                        $('#admin-posts-table').DataTable().ajax.reload(null, false);
+                    } else {
+                    alert(res.message || 'Xóa thất bại');
+                }
                 }
             });
         }
@@ -145,11 +145,17 @@
                 },
                 success: function(res) {
                     if(res.success) {
-                        $('#posts-table').DataTable().ajax.reload(null, false);
+                        $('#admin-posts-table').DataTable().ajax.reload(null, false);
                     }
                 },
             });
         }
+    });
+
+    // Khi submit form filter thì reload bảng
+    $('#filter-form').on('submit', function(e) {
+        e.preventDefault();
+        table.ajax.reload();
     });
 });
 </script>

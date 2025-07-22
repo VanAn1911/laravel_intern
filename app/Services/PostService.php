@@ -21,13 +21,15 @@ class PostService
 
         $query = Post::ownedBy(Auth::id());
 
-        if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%$search%")
-                  ->orWhere('description', 'like', "%$search%")
-                  ->orWhere('status', 'like', "%$search%");
-            });
-        }
+        // Lọc nhiều trường
+        $title = $filters['title'] ?? null;
+        $description = $filters['description'] ?? null;
+        $status = $filters['status'] ?? null;
+
+        $query->when($title, fn($q) => $q->where('title', 'like', "%$title%"))
+            ->when($description, fn($q) => $q->where('description', 'like', "%$description%"))
+            ->when($status !== null && $status !== '', fn($q) => $q->where('status', $status));
+
 
         $columnMapping = [
             'title' => 'title',

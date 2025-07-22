@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Resources\PostResource;
 use Illuminate\Support\Facades\DB;
 use App\Jobs\SendDynamicMailJob;
+use App\Enums\PostStatus;
+use App\Jobs\SendStatusUpdatedMail;
+use Illuminate\Database\Eloquent\Builder;
 
 class AdminPostService
 {
@@ -17,35 +20,36 @@ class AdminPostService
     {
         $perPage = $filters['length'] ?? 10;
         $page = isset($filters['start']) ? floor($filters['start'] / $perPage) + 1 : 1;
-        $search = $filters['search']['value'] ?? null;
         $orderColumnIndex = $filters['order'][0]['column'] ?? 0;
         $orderDir = $filters['order'][0]['dir'] ?? 'asc';
         $orderColumn = $filters['columns'][$orderColumnIndex]['data'] ?? 'created_at';
 
-        $query = Post::query();       
-        $query->with('user');
+        $query = Post::query()->with('user');
 
-        if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%$search%")
-                  ->orWhereHas('user', function ($q2) use ($search) {
-                      $q2->where('email', 'like', "%$search%");
-                  });
-            });
-        }
+        // Lọc nhiều trường
+        $title = $filters['title'] ?? null;
+        $email = $filters['email'] ?? null;
+        $status = $filters['status'] ?? null;
 
-        // Map frontend column names to DB columns
+        $query->when($title, fn($q) => 
+            $q->whereAny(['title', 'description'], 'like', "%$title%")
+        )
+            ->when($email, fn($q) => $q->whereHas('user', fn($q2) => $q2->where('email', 'like', "%$email%")))
+            ->when($status !== null && $status !== '', fn($q) => $q->where('status', $status));
+
+
+        // Sắp xếp
         $columnMapping = [
             'title' => 'title',
-            'user' => 'user',
+            'user.email' => 'email',
             'thumbnail' => 'id',
             'description' => 'description',
             'publish_date' => 'publish_date',
             'status' => 'status',
             'created_at' => 'created_at',
         ];
-         $orderBy = $columnMapping[$orderColumn] ?? 'created_at';
-         $validOrderColumns = ['title', 'publish_date', 'description', 'created_at', 'email'];
+        $orderBy = $columnMapping[$orderColumn] ?? 'created_at';
+        $validOrderColumns = ['title', 'publish_date', 'description', 'created_at', 'email'];
         if (in_array($orderBy, $validOrderColumns)) {
             if ($orderBy === 'email') {
                 $query->join('users', 'posts.user_id', '=', 'users.id')
@@ -71,6 +75,26 @@ class AdminPostService
 
     }
 
+    public function create(array $data, $thumbnail = null)
+    {
+        DB::beginTransaction();
+        try {
+            $data['user_id'] = Auth::id();
+            $data['status'] = PostStatus::APPROVED;
+            $post = Post::create($data);
+
+            if ($thumbnail) {
+                $post->addMediaFromRequest('thumbnail')->toMediaCollection('thumbnails');
+            }
+
+            DB::commit();
+            return $post;
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
     public function update(Post $post, array $data, $thumbnail = null)
     {
         DB::beginTransaction();
@@ -87,7 +111,7 @@ class AdminPostService
 
             if ($oldStatus !== $post->status) {
                 $post = $post->fresh(['user']);//reload user relationship
-                SendDynamicMailJob::dispatch('status', ['post' => $post]);
+                SendStatusUpdatedMail::dispatch($post)->onQueue('SendStatusUpdatedMail');
             }
             return $post->fresh();
         } catch (\Throwable $e) {

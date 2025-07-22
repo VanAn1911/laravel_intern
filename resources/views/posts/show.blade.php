@@ -4,7 +4,7 @@
 <div class="container">
     <h2>{{ $post->title }}</h2>
     <div class="text-muted mb-2">
-        {{ $post->publish_date ? $post->publish_date->format('H:i d/m/Y') : '' }}
+        {{ format_datetime($post->publish_date) }}
     </div>
     <div class="mb-3">{{ $post->description }}</div>
     @if($post->thumbnail)

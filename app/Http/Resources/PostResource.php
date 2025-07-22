@@ -21,9 +21,9 @@ class PostResource extends JsonResource
             'user' => $this->whenLoaded('user', fn () => $this->user),
             'thumbnail' => $this->thumbnail,
             'description' => $this->description,
-            'publish_date' => $this->publish_date?->format('d/m/Y') ?? '',
+            'publish_date' => format_date($this->publish_date),
             'status' => $this->status->toArray(),
-            'created_at' => $this->created_at->format('d/m/Y H:i'),
+            'created_at' => format_datetime($this->created_at),
         ];
     }
 

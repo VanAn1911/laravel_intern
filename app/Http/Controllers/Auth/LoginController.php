@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\LoginRequest;
 use App\Models\User;
 use App\Enums\UserStatus;
-
+use App\Enums\RoleEnum;
 
 class LoginController extends Controller
 {
@@ -21,7 +21,6 @@ class LoginController extends Controller
     // Trait này cũng cung cấp các phương thức để xử lý đăng xuất người dùng,
     use AuthenticatesUsers;
 
-    protected $redirectTo = '/posts';
 
     /**
      * Create a new controller instance.
@@ -52,7 +51,11 @@ class LoginController extends Controller
 
         if (Auth::attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
-            return redirect()->intended($this->redirectTo)->with('login_success', true);
+                if (Auth::user()->role === RoleEnum::ADMIN) {
+                    return to_route('admin.dashboard')->with('success', 'Đăng nhập thành công');
+                }
+
+                return to_route('posts.index')->with('success', 'Đăng nhập thành công');
         }
 
         return back()->withErrors([

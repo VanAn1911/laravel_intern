@@ -16,7 +16,7 @@
                     <h5 class="mb-1" style="font-weight:bold;">{{ $post->title }}</h5>
                 </a>
                 <div class="text-muted mb-1" style="font-size:13px;">
-                    {{ $post->publish_date ? $post->publish_date->format('H:i d/m/Y') : '' }}
+                    {{ format_datetime($post->publish_date) }}
                 </div>
                 <div>{{ $post->description }}</div>
             </div>

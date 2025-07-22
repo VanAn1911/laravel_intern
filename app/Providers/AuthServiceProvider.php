@@ -24,5 +24,9 @@ class AuthServiceProvider extends ServiceProvider
     ]);
             return $user->role === RoleEnum::ADMIN;
         });
+
+        Gate::define('is_user', function (User $user) {
+            return $user->role === RoleEnum::USER;
+        });
     }
 }

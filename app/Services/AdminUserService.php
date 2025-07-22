@@ -7,6 +7,7 @@ use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Enums\UserStatus;
+use Illuminate\Database\Eloquent\Builder;
 class AdminUserService
 {
     public function getUsers($filters)
@@ -20,14 +21,18 @@ class AdminUserService
 
         $query = User::query();
 
-        if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $q->where('first_name', 'like', "%$search%")
-                  ->orWhere('last_name', 'like', "%$search%")
-                  ->orWhere('email', 'like', "%$search%")
-                  ->orWhere('address', 'like', "%$search%");
-            });
-        }
+        // Lọc nhiều trường
+        $name = $filters['name'] ?? null;
+        $email = $filters['email'] ?? null;
+        $status = $filters['status'] ?? null;
+
+        $query->when($name, fn(Builder $q) =>
+            $q->whereAny(['first_name', 'last_name'], 'like', "%$name%")
+              ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%$name%"])
+        )
+        ->when($email, fn(Builder $q) => $q->where('email', 'like', "%$email%"))
+        ->when($status !== null && $status !== '', fn(Builder $q) => $q->where('status', $status));
+
 
         $columnMapping = [
             'name' => 'first_name',

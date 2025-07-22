@@ -2,7 +2,7 @@
 namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ForgotPasswordRequest;
-use App\Jobs\SendDynamicMailJob;
+use App\Jobs\SendResetPasswordEmail;
 use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
@@ -30,7 +30,7 @@ class ForgotPasswordController extends Controller
         );
 
         // Dispatch job gửi mail
-        SendDynamicMailJob::dispatch('reset', ['user' => $user, 'token' => $token]);
+        SendResetPasswordEmail::dispatch($user, $token)->onQueue('ResetPasswordEmail');
 
         return back()->with('status', 'Đã gửi link đặt lại mật khẩu tới email của bạn!');
     }

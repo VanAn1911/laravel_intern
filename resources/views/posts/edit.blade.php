@@ -20,39 +20,12 @@
     <form method="POST" action="{{ route('posts.update', $post) }}" enctype="multipart/form-data">
         @csrf
         @method('PUT')
-        <div class="mb-3">
-            <label>Tiêu đề <span style="color: red">*</label>
-            <input type="text" name="title" class="form-control @error('title') is-invalid @enderror"
-                   value="{{ old('title', $post->title) }}" required>
-            @error('title') <div class="invalid-feedback">{{ $message }}</div> @enderror
-        </div>
-        <div class="mb-3">
-            <label>Mô tả <span style="color: red">*</label>
-            <input type="text" name="description" class="form-control @error('description') is-invalid @enderror"
-                   value="{{ old('description', $post->description) }}">
-            @error('description') <div class="invalid-feedback">{{ $message }}</div> @enderror
-        </div>
-        <div class="mb-3">
-            <label>Nội dung <span style="color: red">*</label>
-            <textarea name="content" class="form-control summernote @error('content') is-invalid @enderror">{{ old('content', $post->content) }}</textarea>
-            @error('content') <div class="invalid-feedback">{{ $message }}</div> @enderror
-        </div>
-        <div class="mb-3">
-            <label>Ngày đăng <span style="color: red">*</label>
-            <input type="datetime-local" name="publish_date" class="form-control @error('publish_date') is-invalid @enderror"
-                   value="{{ old('publish_date', $post->publish_date ? $post->publish_date->format('Y-m-d\TH:i') : '') }}">
-            @error('publish_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
-        </div>
-        <div class="mb-3">
-            <label>Thumbnail hiện tại:</label><br>
-            @if($post->thumbnail)
-                <img src="{{ $post->thumbnail }}" width="120">
-            @endif
-        </div>
-        <div class="mb-3">
-            <label>Thay ảnh thumbnail</label>
-            <input type="file" name="thumbnail" class="form-control">
-        </div>
+        <x-form.input name="title" label="Tiêu đề" :value="$post->title" :required="true" />
+        <x-form.input name="description" label="Mô tả" :value="$post->description" :required="true" />
+        <x-form.editor name="content" label="Nội dung" :value="$post->content" :required="true" />
+        <x-form.input name="publish_date" label="Ngày đăng" type="datetime-local" :value="format_datetime($post->publish_date)" :required="true" />
+        <x-form.image-preview label="Hình ảnh hiện tại:" :src="$post->thumbnail ?? null" />
+        <x-form.input name="image" label="Thay đổi hình ảnh" type="file" />
         <button type="submit" class="btn btn-primary">Cập nhật</button>
         <a href="{{ route('posts.index') }}" class="btn btn-secondary">Quay lại</a>
     </form>

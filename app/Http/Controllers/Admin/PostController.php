@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str; 
 use App\Http\Controllers\Controller;
 use App\Services\AdminPostService;
-
+use App\Http\Requests\Admin\StorePostRequest;
 
 
 class PostController extends Controller
@@ -33,13 +33,22 @@ class PostController extends Controller
      */
      public function create()
     {
-        //
+        return view('admin.posts.create');
     }
 
     // Lưu bài viết mới
     public function store(StorePostRequest $request)
     {
-        //
+        try {
+            $data = $request->validated();
+            $thumbnail = $request->hasFile('thumbnail') ? $request->file('thumbnail') : null;
+            
+            $post = $this->adminPostService->create($data, $thumbnail);
+
+            return to_route('admin.posts.index')->with('success', 'Tạo bài viết thành công');
+        } catch (\Throwable $e) {
+            return back()->withErrors(['error' => 'Có lỗi xảy ra: ' . $e->getMessage()]);
+        }
     }
 
     // Hiển thị form sửa bài viết
