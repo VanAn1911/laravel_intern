@@ -4,7 +4,6 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>{{ config('app.name', 'Laravel') }}</title>
@@ -12,95 +11,83 @@
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('style.css') }}">
+
+    <!-- AdminLTE CSS -->
+    <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/adminlte.min.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    {{-- <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css"> --}}
-    
-    <!-- Scripts -->
+    <link rel="stylesheet" href="{{ asset('style.css') }}">
+
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 </head>
-<body class="d-flex flex-column min-vh-100">
-    <div id="app">
-        <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
-            <div class="container">
-                <a class="navbar-brand" href="{{ url('/') }}">
-                    {{ config('app.name', 'Laravel') }}
+<body class="hold-transition sidebar-mini">
+<div class="wrapper">
+
+    <!-- Navbar -->
+    <nav class="main-header navbar navbar-expand navbar-white navbar-light">
+        <!-- Button Toggle Sidebar -->
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a href="#" class="nav-link" data-widget="pushmenu" role="button">
+                    <i class="fas fa-bars"></i>
                 </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+            </li>
+        </ul>
 
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <!-- Left Side Of Navbar -->
-                    <ul class="navbar-nav me-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('news.index') }}">Tin tức</a>
-                        </li>
-                    </ul>
+        <ul class="navbar-nav ms-auto">
+            @guest
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('login') }}">{{ __('Đăng nhập') }}</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('register') }}">{{ __('Đăng ký') }}</a>
+                </li>
+            @else
+                <li class="nav-item dropdown">
+                    <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        {{ Auth::user()->name }}
+                    </a>
 
+                    <div class="dropdown-menu dropdown-menu-end">
+                        <a class="dropdown-item" href="{{ route('profile.edit') }}">
+                            {{ __('Cập nhật hồ sơ') }}
+                        </a>
+                        <a class="dropdown-item" href="{{ route('logout') }}"
+                           onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                            {{ __('Đăng xuất') }}
+                        </a>
+                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                            @csrf
+                        </form>
+                    </div>
+                </li>
+            @endguest
+        </ul>
+    </nav>
+    <!-- /.navbar -->
 
-                    <!-- Right Side Of Navbar -->
-                    <ul class="navbar-nav ms-auto">
-                        <!-- Authentication Links -->
-                        @guest
-                            @if (Route::has('login'))
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
-                                </li>
-                            @endif
+    <!-- Sidebar -->
+    @include('layouts.sidebar')
+    <!-- /.sidebar -->
 
-                            @if (Route::has('register'))
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a>
-                                </li>
-                            @endif
-                        @else
-                            <li class="nav-item dropdown">
-                                <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                    {{-- lấy tên người dùng đã đăng nhập --}}
-                                    {{ Auth::user()->name }}
-                                </a>
-
-                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">                                    
-                                    <a class="dropdown-item" href="{{ route('profile.edit') }}">
-                                        {{ __('Profile') }}
-                                    </a>
-                                    <a class="dropdown-item" href="{{ route('logout') }}"
-                                       onclick="event.preventDefault();
-                                                     document.getElementById('logout-form').submit();">
-                                        {{ __('Logout') }}
-                                    </a>                                
-                                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                                        @csrf
-                                    </form>
-                                </div>
-                            </li>
-                        @endguest
-                    </ul>
-                </div>
-            </div>
-        </nav>
-
-        <div class="wrapper">
-            {{-- @auth
-                @extends('adminlte::page')
-            @endauth --}}
-
-            <!-- Nội dung chính -->
-            <div class="content-wrapper p-3">
+    <!-- Content Wrapper -->
+    <div class="content-wrapper">
+        <section class="content pt-3">
+            <div class="container-fluid">
                 @yield('content')
             </div>
-        </div>  
+        </section>
     </div>
-    <!-- Nhúng jQuery -->
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-    <!-- Nhúng DataTables JS -->
-    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
-    <!-- Nhúng JS của bạn -->
-    <script src="{{ asset('js/post-datatable.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
-    @stack('scripts')
+    <!-- /.content-wrapper -->
+
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="{{ asset('vendor/adminlte/dist/js/adminlte.min.js') }}"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
+<script src="{{ asset('js/post-datatable.js') }}"></script>
+@stack('scripts')
 </body>
 </html>

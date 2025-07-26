@@ -1,5 +1,5 @@
 {{-- filepath: resources/views/admin/users/edit.blade.php --}}
-@extends('adminlte::page')
+@extends('layouts.app')
 
 @section('content')
 <div class="container">
