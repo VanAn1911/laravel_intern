@@ -12,9 +12,15 @@ class Like extends Model
     protected $fillable = [
         'user_id',
         'likeable_id',
+        'is_like',
         'likeable_type',
         'type',
     ];
+
+    protected $casts = [
+        'is_like' => 'boolean',
+    ];
+
     public function likeable()
     {
         return $this->morphTo();

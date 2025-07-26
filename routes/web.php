@@ -49,9 +49,12 @@ use App\Http\Controllers\Admin\UserController;
     Route::post('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update'); 
 
     //Like, Dislike, Comment on News
-    Route::post('/news/{post:slug}/like', [NewsController::class, 'like'])->name('news.like');
-    Route::post('/news/{post:slug}/dislike', [NewsController::class, 'dislike'])->name('news.dislike');
-    Route::post('/news/{post:slug}/comment', [NewsController::class, 'comment'])->name('news.comment');
+    Route::prefix('news')->name('news.')->group(function () {
+      Route::post('/toggle-like', [NewsController::class, 'toggleLike'])->name('toggle-like');
+      Route::post('/{post:slug}/comment', [NewsController::class, 'comment'])->name('comment');
+      Route::post('/comment/{comment}/reply', [NewsController::class, 'reply'])->name('comment.reply');
+});
+
   });
 
   //User routes

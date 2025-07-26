@@ -2,63 +2,63 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
-use App\Enums\PostStatus;
+use App\Models\Comment;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-
+use App\Http\Requests\User\LikeRequest;
+use App\Services\NewsService;
+use Mews\Purifier\Facades\Purifier;
 
 class NewsController extends Controller
 {
-    // Hiển thị danh sách bài viết đã phê duyệt
+    protected $newsService;
+
+    public function __construct(NewsService $newsService)
+    {
+        $this->newsService = $newsService;
+    }
+
     public function index()
     {
-        // Lấy bài viết đã phê duyệt, có ngày đăng không null, sắp xếp mới nhất
-        $posts =Post::status(PostStatus::APPROVED)//dùng scope status
-            ->whereNotNull('publish_date')
-            ->orderByDesc('publish_date')
-            ->where('publish_date', '<=',now())
-            ->paginate(10);
-
+        $posts = $this->newsService->getApprovedPosts();
         return view('news.index', compact('posts'));
     }
 
-    // Hiển thị chi tiết bài viết qua slug
     public function show(Post $post)
     {
-        if ($post->status !== PostStatus::APPROVED) {
+        if ($post->status !== \App\Enums\PostStatus::APPROVED) {
             abort(404);
         }
 
         return view('news.show', compact('post'));
     }
 
-    // app/Http/Controllers/NewsController.php
-    public function like(Post $post)
+    public function toggleLike(LikeRequest $request)
     {
-        $post->likes()->updateOrCreate(
-            ['user_id' => auth()->id()],
-            ['is_like' => true]
-        );
-        return back();
-    }
+        $data = $request->validated();
 
-    public function dislike(Post $post)
-    {
-        $post->likes()->updateOrCreate(
-            ['user_id' => auth()->id()],
-            ['is_like' => false]
+        $result = $this->newsService->toggleLike(
+            $data['type'],
+            $data['id'],
+            $data['is_like']
         );
-        return back();
+
+        return response()->json($result);
     }
 
     public function comment(Request $request, Post $post)
     {
-        $request->validate(['content' => 'required|string']);
-        $post->comments()->create([
-            'user_id' => auth()->id(),
-            'content' => $request->content,
-        ]);
+        $content = strip_tags(Purifier::clean($request->validate(['content' => 'required|string'])['content']));
+
+        $this->newsService->storeComment($post, $content);
         return back();
     }
 
+    public function reply(Request $request, Comment $comment)
+    {
+        //sử dụng strip_tags để 
+        $content = strip_tags(Purifier::clean($request->validate(['content' => 'required|string'])['content']));
+
+        $this->newsService->storeReply($comment, $content);
+        return back();
+    }
 }
