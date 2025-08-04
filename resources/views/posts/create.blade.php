@@ -13,7 +13,7 @@
         <x-form.input name="description" label="Mô tả" :required="true" />
         <x-form.editor name="content" label="Nội dung" :required="true" :value="$post->content ?? ''" />
         <x-form.input name="publish_date" label="Ngày đăng" type="datetime-local" :required="true" />
-        <x-form.input name="image" label="Hình ảnh" type="file" :required="true" />
+        <x-form.input name="image" label="Hình ảnh" type="file" />
         <button type="submit" class="btn btn-primary">Tạo bài viết</button>
     </form>
 </div>

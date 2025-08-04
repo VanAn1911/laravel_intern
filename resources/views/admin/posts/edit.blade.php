@@ -22,7 +22,7 @@
         <x-form.input name="title" label="Tiêu đề" :value="$post->title" :required="true" />
         <x-form.input name="description" label="Mô tả" :value="$post->description" :required="true" />
         <x-form.editor name="content" label="Nội dung" :value="$post->content" :required="true" />
-        <x-form.input name="publish_date" label="Ngày đăng" type="datetime-local" :value="format_datetime($post->publish_date)" :required="true" />
+        <x-form.input name="publish_date" label="Ngày đăng" type="datetime-local" :value="\App\Helpers\FormatHelper::datetime($post->publish_date)" :required="true" />
         <x-form.image-preview label="Hình ảnh hiện tại:" :src="$post->thumbnail ?? null" />
         <x-form.input name="image" label="Thay đổi hình ảnh" type="file" />
         <x-form.enum-select name="status" label="Trạng thái" enumClass="\App\Enums\PostStatus" :selected="$post->status" />

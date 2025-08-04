@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Helpers\FormatHelper;
 
 class PostResource extends JsonResource
 {
@@ -21,9 +22,9 @@ class PostResource extends JsonResource
             'user' => $this->whenLoaded('user', fn () => $this->user),
             'thumbnail' => $this->thumbnail,
             'description' => $this->description,
-            'publish_date' => format_date($this->publish_date),
+            'publish_date' => FormatHelper::date($this->publish_date),
             'status' => $this->status->toArray(),
-            'created_at' => format_datetime($this->created_at),
+            'created_at' => FormatHelper::datetime($this->created_at),
         ];
     }
 

@@ -4,7 +4,7 @@
 @section('content')
 <div class="container">
     <h2>{{ $post->title }}</h2>
-    <div class="text-muted mb-2">{{ format_datetime($post->publish_date) }}</div>
+    <div class="text-muted mb-2">{{ \App\Helpers\FormatHelper::datetime($post->publish_date) }}</div>
     <div class="mb-3">{{ $post->description }}</div>
 
     @if($post->thumbnail)
@@ -31,7 +31,7 @@
     {{-- Display Comments --}}
     <hr>
     <h3 class="mt-4">Bình luận</h3>
-    @foreach ($post->comments->whereNull('parent_id')->sortByDesc('created_at') as $comment)
+    @foreach ($comments as $comment)
         <div class="border p-2 mb-2">
             <strong>{{ $comment->user->name }}</strong>
             <small>{{ $comment->created_at->diffForHumans() }}</small>
@@ -73,53 +73,56 @@
 @push('js')
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.btn-like').forEach(btn => {
-        btn.addEventListener('click', async e => {
+    document.querySelectorAll('.like-form').forEach(form => {
+        form.addEventListener('submit', async function(e) {
             e.preventDefault();
-            const type = btn.dataset.type;
-            const id = btn.dataset.id;
-            const isLike = btn.dataset.isLike;
+            const formData = new FormData(this);
 
-            const formData = new FormData();
-            formData.append('type', type);
-            formData.append('id', id);
-            formData.append('is_like', isLike);
-            formData.append('_token', '{{ csrf_token() }}');
-
-            const res = await fetch('{{ route("news.toggle-like") }}', {
+            const res = await fetch(this.action, {
                 method: 'POST',
                 body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
             });
 
             if (res.ok) {
                 const data = await res.json();
-                console.log('Data trả về:', data);
 
-                // Cập nhật cả số like & dislike
-                const allButtons = document.querySelectorAll(`.btn-like[data-type="${type}"][data-id="${id}"]`);
-                allButtons.forEach(button => {
-                    const isLikeBtn = button.dataset.isLike === '1';
-                    const countSpan = button.querySelector('.like-count');
+                const type = formData.get('type');
+                const id = formData.get('id');
 
-                    // Cập nhật số
-                    if (countSpan) {
-                        countSpan.textContent = isLikeBtn ? data.like : data.dislike;
-                    }
+                // Tìm tất cả form like/dislike của cùng 1 đối tượng (post/comment/reply)
+                document.querySelectorAll(`.like-form input[name="type"][value="${type}"]`).forEach(input => {
+                    const form = input.closest('form');
+                    const formId = form.querySelector('input[name="id"]').value;
 
-                    // Cập nhật class active
-                    if (parseInt(button.dataset.isLike) === data.current_like) {
-                        button.classList.add('active');
-                    } else {
-                        button.classList.remove('active');
+                    if (formId == id) {
+                        const btn = form.querySelector('.btn-like');
+                        const isLikeBtn = Boolean(Number(form.querySelector('input[name="is_like"]').value));
+                        const countSpan = btn.querySelector('.like-count');
+
+                        // Cập nhật số đếm like/dislike
+                        if (countSpan) {
+                            countSpan.textContent = isLikeBtn ? data.like : data.dislike;
+                        }
+
+                        // Xóa class active tất cả nút trước khi set lại
+                        btn.classList.remove('active');
+                        if (data.current_like !== null) {
+                            if ((isLikeBtn && data.current_like === 1) || (!isLikeBtn && data.current_like === 0)) {
+                                btn.classList.add('active');
+                            }
+                        }
                     }
                 });
 
             } else {
                 alert('Thao tác thất bại!');
-            }     
+            }
         });
     });
 });
-</script>
 
+</script>
 @endpush

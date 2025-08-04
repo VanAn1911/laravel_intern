@@ -84,7 +84,9 @@ class AdminPostService
             $post = Post::create($data);
 
             if ($thumbnail) {
+                Log::info('Thumbnail received', ['file' => $thumbnail]);
                 $post->addMediaFromRequest('thumbnail')->toMediaCollection('thumbnails');
+                Log::info('Media added to collection', ['post_id' => $post->id]);
             }
 
             DB::commit();
@@ -111,7 +113,8 @@ class AdminPostService
 
             if ($oldStatus !== $post->status) {
                 $post = $post->fresh(['user']);//reload user relationship
-                SendStatusUpdatedMail::dispatch($post)->onQueue('SendStatusUpdatedMail');
+                SendStatusUpdatedMail::dispatch($post);
+                //->onQueue('SendStatusUpdatedMail')
             }
             return $post->fresh();
         } catch (\Throwable $e) {

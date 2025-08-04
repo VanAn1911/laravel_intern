@@ -27,6 +27,7 @@ class SendStatusUpdatedMail implements ShouldQueue
         if ($this->post->user && $this->post->user->email) {
             Mail::to($this->post->user->email)
                 ->queue(new StatusUpdatedMail($this->post));
+                //->onQueue('SendStatusUpdatedMail'); // Cùng queue với job hiện tại
         }
     }
 }

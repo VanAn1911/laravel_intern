@@ -16,13 +16,21 @@
                     <h5 class="mb-1" style="font-weight:bold;">{{ $post->title }}</h5>
                 </a>
                 <div class="text-muted mb-1" style="font-size:13px;">
-                    {{ format_datetime($post->publish_date) }}
+                    {{ \App\Helpers\FormatHelper::datetime($post->publish_date) }}
                 </div>
                 <div>{{ $post->description }}</div>
+
+                {{-- Thêm lượt Like / Dislike / Comment --}}
+                <div class="mt-2">
+                    👍 {{ $post->like_count }} 
+                    👎 {{ $post->dislike_count }}
+                    💬 {{ $post->comment_count }}
+                </div>
             </div>
         </div>
         <hr>
     @endforeach
+
 
     <div>
         {{ $posts->links() }}

@@ -30,7 +30,7 @@ class ForgotPasswordController extends Controller
         );
 
         // Dispatch job gửi mail
-        SendResetPasswordEmail::dispatch($user, $token)->onQueue('ResetPasswordEmail');
+        SendResetPasswordEmail::dispatch($user, $token)->onQueue('SendResetPasswordEmail');
 
         return back()->with('status', 'Đã gửi link đặt lại mật khẩu tới email của bạn!');
     }

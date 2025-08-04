@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Enums\PostStatus;
 use App\Models\Post;
 use App\Models\Comment;
 use Illuminate\Http\Request;
@@ -20,16 +21,32 @@ class NewsController extends Controller
     public function index()
     {
         $posts = $this->newsService->getApprovedPosts();
+        $posts = Post::withCount([
+            'likes as like_count' => function ($query) {
+                $query->where('is_like', true);
+            },
+            'likes as dislike_count' => function ($query) {
+                $query->where('is_like', false);
+            },
+            'comments as comment_count'
+        ])->paginate(10);
+
         return view('news.index', compact('posts'));
     }
 
     public function show(Post $post)
     {
-        if ($post->status !== \App\Enums\PostStatus::APPROVED) {
+        if ($post->status !== PostStatus::APPROVED) {
             abort(404);
         }
 
-        return view('news.show', compact('post'));
+         $comments = $post->comments()
+        ->with(['user', 'replies.user', 'likes', 'replies.likes'])
+        ->whereNull('parent_id')
+        ->latest()
+        ->get();
+
+        return view('news.show', compact('post', 'comments'));
     }
 
     public function toggleLike(LikeRequest $request)

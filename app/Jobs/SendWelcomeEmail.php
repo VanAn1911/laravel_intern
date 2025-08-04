@@ -23,6 +23,6 @@ class SendWelcomeEmail implements ShouldQueue
 
     public function handle()
     {
-        Mail::to($this->user->email)->queue(new WelcomeMail($this->user));
+        Mail::to($this->user->email)->queue(new WelcomeMail($this->user))->onQueue('SendWelcomeEmail'); // Cùng queue với job hiện tại
     }
 }
